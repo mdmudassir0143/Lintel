@@ -7,7 +7,7 @@ import { decodeHeader, encodeHeader, type PaymentRequired } from '../x402/paypal
 import { addStep, setRunStatus } from './runLog';
 import { waitForApproval } from './approval';
 
-export const DEFAULT_GOAL = 'Buy one 12oz bag of Ethiopian coffee for under $25 from {url}.';
+export const DEFAULT_GOAL = 'Buy one 12 oz bag of Ethiopian coffee for under $25.';
 export const HEADLESS_MAX_STEPS = 12;
 
 export interface AgentDeps {
