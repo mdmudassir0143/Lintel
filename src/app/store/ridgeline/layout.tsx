@@ -23,6 +23,11 @@ export default function StoreLayout({ children }: { children: ReactNode }) {
       <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
       <footer className="mx-auto max-w-5xl px-4 pb-10 text-xs text-[#8a7a68]">
         Small-batch roasting since 2014 · Demo store for Lintel
+        {installed && (
+          <span data-paypal="accepted" className="ml-2 rounded bg-[#ffc439] px-2 py-0.5 font-sans font-semibold text-[#003087]">
+            Pay with PayPal
+          </span>
+        )}
       </footer>
       {!installed && <CookieWall />}
       {installed && (

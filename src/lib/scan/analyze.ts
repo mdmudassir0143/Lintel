@@ -2,6 +2,7 @@ import { generateObject, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import { withModelFallback } from '../llm';
 import type { Product } from '../catalog';
+import type { CheckResult } from './checks';
 
 type Opts = { models?: LanguageModel[] };
 
@@ -63,4 +64,28 @@ Mention that payment is through PayPal and needs human approval where relevant.`
     { models: opts.models },
   );
   return object;
+}
+
+
+/** Plain-English findings for the merchant; falls back to the failed checks if the AI is unavailable. */
+export async function writeFindings(url: string, checks: CheckResult[], opts: Opts = {}): Promise<string[]> {
+  const failed = checks.filter((c) => c.status !== 'pass' && c.id !== 'live_agent');
+  if (!failed.length) return ['Your store passes every agent-readiness check. Send an AI agent to confirm it can actually buy.'];
+  try {
+    const { object } = await withModelFallback(
+      (model) =>
+        generateObject({
+          model,
+          maxRetries: 0,
+          schema: z.object({ findings: z.array(z.string()).min(1).max(6) }),
+          prompt: `You advise a small online store owner (not technical) about why AI shopping agents fail to buy from their store at ${url}.
+Write 3-5 short findings (max 25 words each), most costly problem first. Plain English, no jargon like "JSON-LD" or "x402" without a 3-word explanation. Each finding: what's wrong + what it costs them.
+Check results: ${JSON.stringify(failed.map(({ title, status, evidence }) => ({ title, status, evidence })))}`,
+        }),
+      { models: opts.models },
+    );
+    return object.findings;
+  } catch {
+    return failed.slice(0, 5).map((c) => `${c.title}: ${c.evidence}.`);
+  }
 }
