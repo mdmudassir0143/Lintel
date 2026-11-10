@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import { env } from './env';
+import { RIDGELINE_RAW_CATALOG } from './ridgelineData';
 
 const SCHEMA = `
 create table if not exists merchants (
@@ -32,21 +33,12 @@ create table if not exists orders (
 );
 `;
 
-type Seeder = (db: Database.Database) => void;
-const seeders: Seeder[] = [];
-
-/** Register extra seed logic (e.g. the demo catalog) without a circular import. */
-export function registerSeeder(fn: Seeder) {
-  seeders.push(fn);
-}
-
 let instance: Database.Database | null = null;
 
 function seed(db: Database.Database) {
   db.prepare(
-    `insert or ignore into merchants (id, name, store_url, installed) values (?, ?, ?, 0)`,
-  ).run('ridgeline', 'Ridgeline Coffee Roasters', `${env.publicBaseUrl}/store/ridgeline`);
-  for (const s of seeders) s(db);
+    `insert or ignore into merchants (id, name, store_url, installed, raw_catalog) values (?, ?, ?, 0, ?)`,
+  ).run('ridgeline', 'Ridgeline Coffee Roasters', `${env.publicBaseUrl}/store/ridgeline`, JSON.stringify(RIDGELINE_RAW_CATALOG));
 }
 
 export function getDb(): Database.Database {
