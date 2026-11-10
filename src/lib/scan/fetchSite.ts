@@ -9,27 +9,17 @@ export interface SiteSnapshot {
   error?: string;
 }
 
+import { guardedFetch, UnsafeUrlError } from '../net';
+
 const UA = 'LintelScanner/0.1 (agent-readiness check)';
 
-async function get(url: string, timeoutMs: number, maxBytes: number) {
-  const res = await fetch(url, {
-    redirect: 'follow',
-    headers: { 'user-agent': UA, accept: 'text/html,application/json,text/plain;q=0.9,*/*;q=0.5' },
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-  const reader = res.body?.getReader();
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  if (reader) {
-    while (size < maxBytes) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-      size += value.length;
-    }
-    await reader.cancel().catch(() => {});
-  }
-  const text = Buffer.concat(chunks).toString('utf8').slice(0, maxBytes);
+async function get(url: string, timeoutMs: number, maxBytes: number, allowHosts?: string[]) {
+  const res = await guardedFetch(
+    url,
+    { headers: { 'user-agent': UA, accept: 'text/html,application/json,text/plain;q=0.9,*/*;q=0.5' } },
+    { timeoutMs, maxBytes, allowHosts },
+  );
+  const text = (await res.text()).slice(0, maxBytes);
   return { res, text, contentType: res.headers.get('content-type') ?? '' };
 }
 
@@ -52,7 +42,7 @@ function manifestHref(html: string): string | undefined {
 }
 
 /** Fetches a store's home page, robots.txt, checkout/cart page and agent manifest. Never throws. */
-export async function fetchSite(url: string, opts: { timeoutMs?: number; maxBytes?: number } = {}): Promise<SiteSnapshot> {
+export async function fetchSite(url: string, opts: { timeoutMs?: number; maxBytes?: number; allowHosts?: string[] } = {}): Promise<SiteSnapshot> {
   const timeoutMs = opts.timeoutMs ?? 10000;
   const maxBytes = opts.maxBytes ?? 2_000_000;
   let parsed: URL;
@@ -65,8 +55,9 @@ export async function fetchSite(url: string, opts: { timeoutMs?: number; maxByte
 
   let home;
   try {
-    home = await get(parsed.toString(), timeoutMs, maxBytes);
+    home = await get(parsed.toString(), timeoutMs, maxBytes, opts.allowHosts);
   } catch (e) {
+    if (e instanceof UnsafeUrlError) return { url, ok: false, error: e.message };
     return { url, ok: false, error: `Could not reach the site: ${(e as Error).name === 'TimeoutError' ? 'timed out' : (e as Error).message}` };
   }
   if (!home.res.ok) return { url, ok: false, status: home.res.status, error: `Site returned HTTP ${home.res.status}` };
@@ -78,7 +69,7 @@ export async function fetchSite(url: string, opts: { timeoutMs?: number; maxByte
 
   const tryText = async (u: string) => {
     try {
-      const r = await get(u, timeoutMs, maxBytes);
+      const r = await get(u, timeoutMs, maxBytes, opts.allowHosts);
       return r.res.ok ? r : null;
     } catch {
       return null;

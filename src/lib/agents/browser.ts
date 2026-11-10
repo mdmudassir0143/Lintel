@@ -21,7 +21,7 @@ export async function openBrowser(): Promise<OpenedBrowser> {
   if (env.browserProvider === 'kernel' && env.kernelApiKey) {
     const { default: Kernel } = await import('@onkernel/sdk');
     const kernel = new Kernel({ apiKey: env.kernelApiKey });
-    const kb = await kernel.browsers.create({ stealth: true, timeout_seconds: 600 });
+    const kb = await kernel.browsers.create({ stealth: true, timeout_seconds: 1200 });
     const browser: Browser = await chromium.connectOverCDP(kb.cdp_ws_url);
     const context = browser.contexts()[0] ?? (await browser.newContext());
     const page = context.pages()[0] ?? (await context.newPage());

@@ -31,6 +31,7 @@ create table if not exists orders (
   capture_id text not null, amount text not null, items text not null,
   payer_email text, run_id text, created_at integer not null
 );
+create unique index if not exists orders_paypal_order on orders(paypal_order_id);
 `;
 
 let instance: Database.Database | null = null;

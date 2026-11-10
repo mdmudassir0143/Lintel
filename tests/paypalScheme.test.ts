@@ -107,3 +107,30 @@ describe('x402 paypal-order scheme', () => {
     }
   });
 });
+
+describe('review fixes', () => {
+  beforeEach(() => resetDbForTests());
+
+  it('settled proof replayed with a different cart is rejected', async () => {
+    const pp = fakePaypal();
+    const { extra } = (await createPaymentRequired({ paypal: pp.api, ...base })).accepts[0];
+    pp.approve(extra.orderId);
+    expect((await verifyAndSettle({ paypal: pp.api, ...base, header: proof(extra.orderId, extra.nonce) })).ok).toBe(true);
+    const swapped = await verifyAndSettle({ paypal: pp.api, ...base, items: [{ sku: 'RC-ESP2', qty: 20 }], amount: '760.00', header: proof(extra.orderId, extra.nonce) });
+    expect(swapped).toEqual({ ok: false, httpStatus: 400, error: 'cart_mismatch' });
+  });
+
+  it('concurrent proofs settle once and write one order row', async () => {
+    const pp = fakePaypal();
+    const { extra } = (await createPaymentRequired({ paypal: pp.api, ...base })).accepts[0];
+    pp.approve(extra.orderId);
+    const h = proof(extra.orderId, extra.nonce);
+    const [a, b] = await Promise.all([
+      verifyAndSettle({ paypal: pp.api, ...base, header: h }),
+      verifyAndSettle({ paypal: pp.api, ...base, header: h }),
+    ]);
+    expect([a, b].filter((r) => r.ok && r.firstSettlement)).toHaveLength(1);
+    expect([a, b].every((r) => r.ok)).toBe(true);
+    expect(getDb().prepare('select count(*) n from orders').get()).toEqual({ n: 1 });
+  });
+});

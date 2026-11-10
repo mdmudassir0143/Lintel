@@ -33,7 +33,7 @@ export function createScan(url: string): string {
 export async function completeScan(id: string, url: string): Promise<void> {
   const db = getDb();
   try {
-    const snap = await fetchSite(url);
+    const snap = await fetchSite(url, { allowHosts: [new URL(env.publicBaseUrl).host] });
     const checks = [...runStaticChecks(snap), liveAgentCheck('not_run', '')];
     const findings = await writeFindings(url, checks);
     db.prepare(`update scans set status = 'done', checks = ?, score = ?, findings = ? where id = ?`).run(

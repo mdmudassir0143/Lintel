@@ -81,6 +81,7 @@ export function createPayPalClient(opts: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: 'grant_type=client_credentials',
+      signal: AbortSignal.timeout(15_000),
     });
     const body: any = await res.json().catch(() => ({}));
     if (!res.ok || !body.access_token) {
@@ -100,6 +101,7 @@ export function createPayPalClient(opts: {
       method: init.method,
       headers,
       body: init.body === undefined ? undefined : JSON.stringify(init.body),
+      signal: AbortSignal.timeout(15_000),
     });
     const body: any = await res.json().catch(() => ({}));
     if (!res.ok) {

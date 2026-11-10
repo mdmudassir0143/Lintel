@@ -1,6 +1,8 @@
 import { generateText, tool, stepCountIs, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import { resilientModel, compactMessages } from '../llm';
+import { guardedFetch } from '../net';
+import { env } from '../env';
 import type { PayPalApi } from '../paypal/client';
 import type { LiveOutcome } from '../scan/checks';
 import { decodeHeader, encodeHeader, type PaymentRequired } from '../x402/paypalScheme';
@@ -33,7 +35,10 @@ function truncate(s: string, n: number) {
 
 export async function runHeadlessAgent(args: { runId: string; url: string; goal: string; deps: AgentDeps }): Promise<LiveOutcome> {
   const { runId, deps } = args;
-  const doFetch = deps.fetchImpl ?? fetch;
+  // Default: public addresses only (plus Lintel itself), 10s timeout, 2MB cap per response.
+  const ownHost = new URL(env.publicBaseUrl).host;
+  const doFetch: typeof fetch =
+    deps.fetchImpl ?? (((u: string | URL | Request, init?: RequestInit) => guardedFetch(String(u), init, { allowHosts: [ownHost] })) as typeof fetch);
   const state = {
     manifest: null as any,
     foundProduct: false,
@@ -73,6 +78,7 @@ export async function runHeadlessAgent(args: { runId: string; url: string; goal:
         if (++state.gets > 4) return { error: 'Too many page fetches. Stop and call finish.' };
         try {
           const res = await doFetch(url);
+          if (!res) return { error: 'No response' };
           const body = await res.text();
           if (res.ok && /"products"\s*:\s*\[\s*\{/.test(body)) state.foundProduct = true;
           return { status: res.status, body: truncate(body.replace(/<head[\s\S]*?<\/head>|<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<svg[\s\S]*?<\/svg>/gi, '').replace(/\s(class|style)="[^"]*"/g, '').replace(/\s+/g, ' '), 3500) };

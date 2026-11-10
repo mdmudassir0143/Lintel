@@ -172,11 +172,11 @@ export async function verifyAndSettle(args: {
     .prepare('select * from payment_nonces where nonce = ? and merchant_id = ?')
     .get(p.payload.nonce, args.merchantId) as NonceRow | undefined;
   if (!row) return fail(400, 'unknown_nonce');
+  if (row.cart_hash !== cartHash(args.items)) return fail(400, 'cart_mismatch');
+  if (row.paypal_order_id !== p.payload.orderId) return fail(400, 'order_mismatch');
   if (row.status === 'settled' && row.receipt) {
     return { ok: true, receipt: JSON.parse(row.receipt), firstSettlement: false };
   }
-  if (row.cart_hash !== cartHash(args.items)) return fail(400, 'cart_mismatch');
-  if (row.paypal_order_id !== p.payload.orderId) return fail(400, 'order_mismatch');
 
   let order;
   try {
@@ -205,11 +205,12 @@ export async function verifyAndSettle(args: {
     amount: row.amount,
     payer: captured.payerEmail ?? order.payerEmail,
   };
-  const settle = db.transaction(() => {
-    db.prepare(`update payment_nonces set status = 'settled', receipt = ? where nonce = ?`).run(
-      JSON.stringify(receipt),
-      row.nonce,
-    );
+  // Only one concurrent settlement may win; the loser returns the stored receipt.
+  const settle = db.transaction((): boolean => {
+    const won = db
+      .prepare(`update payment_nonces set status = 'settled', receipt = ? where nonce = ? and status = 'pending'`)
+      .run(JSON.stringify(receipt), row.nonce).changes === 1;
+    if (!won) return false;
     db.prepare(
       `insert into orders (id, merchant_id, paypal_order_id, capture_id, amount, items, payer_email, run_id, created_at)
        values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -224,7 +225,11 @@ export async function verifyAndSettle(args: {
       args.runId ?? null,
       Date.now(),
     );
+    return true;
   });
-  settle();
+  if (!settle()) {
+    const stored = db.prepare('select receipt from payment_nonces where nonce = ?').get(row.nonce) as { receipt: string };
+    return { ok: true, receipt: JSON.parse(stored.receipt), firstSettlement: false };
+  }
   return { ok: true, receipt, firstSettlement: true };
 }

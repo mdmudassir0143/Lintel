@@ -56,7 +56,7 @@ describe('static checks', () => {
 
 describe('fetchSite', () => {
   it('unreachable site yields partial scan', async () => {
-    const s = await fetchSite('http://127.0.0.1:9', { timeoutMs: 2000 });
+    const s = await fetchSite('http://127.0.0.1:9', { timeoutMs: 2000, allowHosts: ['127.0.0.1:9'] });
     expect(s.ok).toBe(false);
     const c = byId(runStaticChecks(s));
     expect(c.site_unreachable.status).toBe('fail');
@@ -66,14 +66,14 @@ describe('fetchSite', () => {
   it('enforces timeout', async () => {
     const url = await serve(() => { /* never respond */ });
     const t0 = Date.now();
-    const s = await fetchSite(url, { timeoutMs: 200 });
+    const s = await fetchSite(url, { timeoutMs: 200, allowHosts: [new URL(url).host] });
     expect(s.ok).toBe(false);
     expect(Date.now() - t0).toBeLessThan(1500);
   });
 
   it('non-HTML response', async () => {
     const url = await serve((_q, r) => { r.writeHead(200, { 'content-type': 'application/pdf' }); r.end('%PDF'); });
-    const s = await fetchSite(url);
+    const s = await fetchSite(url, { allowHosts: [new URL(url).host] });
     expect(s.ok).toBe(false);
     expect(s.error).toMatch(/content type/i);
   });
@@ -91,7 +91,7 @@ describe('fetchSite', () => {
       r.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
       r.end('<html><head><link rel="agent-manifest" href="/m.json"></head><a href="/about">About</a><a href="/cart">Cart</a></html>');
     });
-    const s = await fetchSite(url);
+    const s = await fetchSite(url, { allowHosts: [new URL(url).host] });
     expect(s.ok).toBe(true);
     expect(s.checkoutHtml).toContain('cart page');
     expect(s.robotsTxt).toContain('Allow');
@@ -100,7 +100,7 @@ describe('fetchSite', () => {
 
   it('caps huge pages', async () => {
     const url = await serve((_q, r) => { r.writeHead(200, { 'content-type': 'text/html' }); r.end('<p>' + 'x'.repeat(3_000_000)); });
-    const s = await fetchSite(url, { maxBytes: 100_000 });
+    const s = await fetchSite(url, { maxBytes: 100_000, allowHosts: [new URL(url).host] });
     expect(s.ok).toBe(true);
     expect(s.html!.length).toBeLessThanOrEqual(100_000);
   });

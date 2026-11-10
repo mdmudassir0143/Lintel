@@ -1,4 +1,6 @@
 import { startRun } from '@/lib/agents/runner';
+import { assertPublicUrl, UnsafeUrlError } from '@/lib/net';
+import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,8 +10,9 @@ export async function POST(req: Request) {
   let url: string;
   try {
     url = new URL(String(b.url)).toString();
-  } catch {
-    return Response.json({ error: 'A valid store url is required' }, { status: 400 });
+    await assertPublicUrl(url, { allowHosts: [new URL(env.publicBaseUrl).host] });
+  } catch (e) {
+    return Response.json({ error: e instanceof UnsafeUrlError ? e.message : 'A valid store url is required' }, { status: 400 });
   }
   const runId = startRun({ kind: b.kind, url, goal: typeof b.goal === 'string' ? b.goal.slice(0, 300) : undefined, scanId: b.scanId, merchantId: b.merchantId });
   return Response.json({ runId });
