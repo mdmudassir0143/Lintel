@@ -129,7 +129,8 @@ export function resilientModel(opts: {
             break;
           }
           if (status === 404) {
-            ready.coolUntil = Date.now() + 10 * 60_000;
+            // Free-tier keys sometimes answer an over-quota request with an empty 404.
+            ready.coolUntil = Date.now() + 60_000;
             failures.push(`${id}: 404`);
             break;
           }

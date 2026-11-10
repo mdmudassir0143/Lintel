@@ -4,7 +4,10 @@ export const MERCHANT_ID = 'ridgeline';
 
 export function storeState() {
   const m = getMerchant(MERCHANT_ID);
-  return { installed: m?.installed === 1, name: m?.name ?? 'Ridgeline Coffee Roasters', catalog: getMerchantCatalog(MERCHANT_ID) };
+  const installed = m?.installed === 1;
+  // Before Lintel is installed the shop shows its original (messy) catalog.
+  const catalog = installed ? getMerchantCatalog(MERCHANT_ID) : (JSON.parse(m?.raw_catalog ?? '[]') as Product[]);
+  return { installed, name: m?.name ?? 'Ridgeline Coffee Roasters', catalog };
 }
 
 import { productJsonLd, jsonForScript } from '@/lib/fixes/generate';

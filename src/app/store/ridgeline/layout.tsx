@@ -6,6 +6,7 @@ import { env } from '@/lib/env';
 import { MERCHANT_ID } from './storeData';
 
 export const dynamic = 'force-dynamic';
+export const metadata = { title: 'Ridgeline Coffee Roasters — fresh-roasted coffee', description: 'Small-batch coffee roasted every Tuesday.' };
 
 export default function StoreLayout({ children }: { children: ReactNode }) {
   const { installed, name } = storeState();
