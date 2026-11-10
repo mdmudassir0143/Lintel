@@ -32,3 +32,10 @@ describe('env', () => {
     expect(loadEnv({ GEMINI_MODELS: 'a, b' }).geminiModels).toEqual(['a', 'b']);
   });
 });
+
+describe('env on Render', () => {
+  it('uses RENDER_EXTERNAL_URL when PUBLIC_BASE_URL is unset', () => {
+    expect(loadEnv({ RENDER_EXTERNAL_URL: 'https://lintel.onrender.com/' }).publicBaseUrl).toBe('https://lintel.onrender.com');
+    expect(loadEnv({ RENDER_EXTERNAL_URL: 'https://a.onrender.com', PUBLIC_BASE_URL: 'https://b.example' }).publicBaseUrl).toBe('https://b.example');
+  });
+});

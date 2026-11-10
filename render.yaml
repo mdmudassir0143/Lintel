@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: lintel
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: BROWSER_PROVIDER
+        value: kernel
+      - key: DB_PATH
+        value: ./lintel.db
+      - key: APPROVAL_TIMEOUT_MS
+        value: "300000"
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GOOGLE_GENERATIVE_AI_API_KEY
+        sync: false
+      - key: KERNEL_API_KEY
+        sync: false
