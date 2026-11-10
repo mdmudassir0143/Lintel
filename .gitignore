@@ -5,3 +5,7 @@ node_modules/
 .next/
 *.db
 .superpowers/
+lintel.db*
+*.tsbuildinfo
+next-env.d.ts
+test-results/
