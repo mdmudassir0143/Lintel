@@ -44,3 +44,58 @@ describe('withModelFallback', () => {
     expect(b.doGenerateCalls).toHaveLength(0);
   });
 });
+
+import { resilientModel, parseRetryDelayMs } from '@/lib/llm';
+import { APICallError } from 'ai';
+
+describe('resilientModel', () => {
+  const opts = (models: any[], extra: Record<string, number> = {}) => ({ models, minIntervalMs: 0, maxWaitMs: 300, baseDelayMs: 1, ...extra });
+  const ask = (model: any) => generateText({ model, prompt: 'hi', maxRetries: 0 }).then((r) => r.text);
+
+  it('moves to next model on 429 without restarting', async () => {
+    const a = failingModel(429, 'a');
+    const b = scriptedModel([textResult('from-b')], 'b');
+    expect(await ask(resilientModel(opts([a, b])))).toBe('from-b');
+    expect(a.doGenerateCalls).toHaveLength(1);
+  });
+
+  it('keeps a cooled-down model out of later calls', async () => {
+    const a = failingModel(429, 'a');
+    const b = scriptedModel([textResult('1'), textResult('2')], 'b');
+    const m = resilientModel(opts([a, b], { cooldownMs: 10_000 }));
+    await ask(m);
+    await ask(m);
+    expect(a.doGenerateCalls).toHaveLength(1);
+    expect(b.doGenerateCalls).toHaveLength(2);
+  });
+
+  it('retries a 503 on the same model', async () => {
+    let n = 0;
+    const a = scriptedModel([textResult('second-try')], 'a');
+    const orig = a.doGenerate;
+    a.doGenerate = async (o: any) => {
+      if (n++ === 0) throw new APICallError({ message: '503', url: 'x', requestBodyValues: {}, statusCode: 503 });
+      return orig(o);
+    };
+    expect(await ask(resilientModel(opts([a])))).toBe('second-try');
+  });
+
+  it('throws LlmUnavailableError when every model stays unavailable', async () => {
+    await expect(ask(resilientModel(opts([failingModel(429), failingModel(404)])))).rejects.toThrow(/unavailable/i);
+  });
+
+  it('paces calls to the same model', async () => {
+    const a = scriptedModel([textResult('1'), textResult('2')], 'a');
+    const m = resilientModel(opts([a], { minIntervalMs: 120 }));
+    const t0 = Date.now();
+    await ask(m);
+    await ask(m);
+    expect(Date.now() - t0).toBeGreaterThanOrEqual(110);
+  });
+
+  it('parses Google retryDelay', () => {
+    const body = JSON.stringify({ error: { details: [{ '@type': 'type.googleapis.com/google.rpc.RetryInfo', retryDelay: '37s' }] } });
+    expect(parseRetryDelayMs(body)).toBe(37_000);
+    expect(parseRetryDelayMs('nope')).toBeUndefined();
+  });
+});
