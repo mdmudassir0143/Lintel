@@ -39,7 +39,7 @@ describe('fix generation', () => {
   });
 
   it('cleanCatalog never changes sku, price or stock', async () => {
-    const llmOut = { products: [{ sku: 'RC-ETH12', title: 'Ethiopia Yirgacheffe', description: 'Bright and floral.', price: '1.00', attributes: { origin: 'Ethiopia', process: 'Natural' } }, { sku: 'FAKE', title: 'Invented', description: '', attributes: {} }] };
+    const llmOut = { products: [{ sku: 'RC-ETH12', title: 'Ethiopia Yirgacheffe', description: 'Bright and floral.', price: '1.00', attributes: [{ name: 'origin', value: 'Ethiopia' }, { name: 'process', value: 'Natural' }] }, { sku: 'FAKE', title: 'Invented', description: '', attributes: [] }] };
     const model = scriptedModel([textResult(JSON.stringify(llmOut))]);
     const out = await cleanCatalog([eth], { models: [model] });
     expect(out).toHaveLength(1);

@@ -184,8 +184,8 @@ export function resilientModel(opts: {
             failures.push(`${id}: 404`);
             break;
           }
-          // Groq answers malformed model tool calls with 400 tool_use_failed: a fresh sample usually works.
-          const badToolCall = status === 400 && /tool_use_failed|failed to parse tool call/i.test(`${(e as any)?.responseBody ?? ''} ${(e as any)?.message ?? ''}`);
+          // Groq answers malformed model output with 400 (tool_use_failed / output_parse_failed): a fresh sample usually works.
+          const badToolCall = status === 400 && /tool_use_failed|failed to parse tool call|output_parse_failed|parsing failed|failed_generation/i.test(`${(e as any)?.responseBody ?? ''} ${(e as any)?.message ?? ''}`);
           const transient = badToolCall || (status !== undefined && status >= 500) || (status === undefined && isTimeout(e));
           if (!transient) throw e;
           failures.push(`${id}: ${status ?? 'timeout'}`);
