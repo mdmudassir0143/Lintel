@@ -1,6 +1,6 @@
 import { generateText, tool, stepCountIs, type LanguageModel } from 'ai';
 import { z } from 'zod';
-import { resilientModel } from '../llm';
+import { resilientModel, compactMessages } from '../llm';
 import type { PayPalApi } from '../paypal/client';
 import type { LiveOutcome } from '../scan/checks';
 import { decodeHeader, encodeHeader, type PaymentRequired } from '../x402/paypalScheme';
@@ -75,7 +75,7 @@ export async function runHeadlessAgent(args: { runId: string; url: string; goal:
           const res = await doFetch(url);
           const body = await res.text();
           if (res.ok && /"products"\s*:\s*\[\s*\{/.test(body)) state.foundProduct = true;
-          return { status: res.status, body: truncate(body.replace(/<script[\s\S]*?<\/script>/gi, ''), 6000) };
+          return { status: res.status, body: truncate(body.replace(/<head[\s\S]*?<\/head>|<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<svg[\s\S]*?<\/svg>/gi, '').replace(/\s(class|style)="[^"]*"/g, '').replace(/\s+/g, ' '), 3500) };
         } catch (e) {
           return { error: (e as Error).message };
         }
@@ -153,6 +153,7 @@ export async function runHeadlessAgent(args: { runId: string; url: string; goal:
           system: SYSTEM,
           prompt: `Goal: ${args.goal}\nStore URL: ${args.url}`,
           tools,
+          prepareStep: ({ messages }: any) => ({ messages: compactMessages(messages, 2) }),
           stopWhen: [stepCountIs(HEADLESS_MAX_STEPS), () => state.finish !== null],
           onStepFinish: (step: any) => {
             for (const tr of step.toolResults ?? []) log(tr.toolName, { input: tr.input, output: tr.output });

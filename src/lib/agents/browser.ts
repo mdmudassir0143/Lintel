@@ -1,7 +1,7 @@
 import { generateText, tool, stepCountIs } from 'ai';
 import { z } from 'zod';
 import { chromium, type Page, type Browser } from 'playwright-core';
-import { resilientModel } from '../llm';
+import { resilientModel, compactMessages } from '../llm';
 import { env } from '../env';
 import type { LiveOutcome } from '../scan/checks';
 import type { AgentDeps } from './headless';
@@ -153,14 +153,15 @@ export async function runBrowserAgent(args: {
             const r = el.getBoundingClientRect();
             return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden';
           });
-          const lines = visible.slice(0, 60).map((el, i) => {
+          const lines = visible.slice(0, 45).map((el, i) => {
             el.setAttribute('data-lintel-idx', String(i));
             const input = el as HTMLInputElement;
             const label = (el.innerText || el.getAttribute('aria-label') || input.placeholder || input.value || input.name || '').trim().slice(0, 60);
             const type = input.type ? ` type=${input.type}` : '';
             return `[${i}] <${el.tagName.toLowerCase()}${type}> "${label}"`;
           });
-          return { title: document.title, url: location.href, text: document.body.innerText.replace(/\s+/g, ' ').slice(0, 6000), elements: lines };
+          return { title: document.title, url: location.href, text: document.body.innerText.replace(/\s+/g, ' ')
+            .slice(0, 3000), elements: lines };
         }),
     }),
     click: tool({
@@ -262,6 +263,7 @@ export async function runBrowserAgent(args: {
       system: SYSTEM,
       prompt: `Goal: ${args.goal}\nThe store is open in the browser at ${args.url}.`,
       tools,
+      prepareStep: ({ messages }: any) => ({ messages: compactMessages(messages, 2) }),
       stopWhen: [stepCountIs(BROWSER_MAX_STEPS), () => state.finish !== null],
       onStepFinish: async (step: any) => {
         for (const tr of step.toolResults ?? []) {

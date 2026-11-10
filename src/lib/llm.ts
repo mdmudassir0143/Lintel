@@ -1,4 +1,5 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createGroq } from '@ai-sdk/groq';
 import type { LanguageModel } from 'ai';
 import { env } from './env';
 import type { LanguageModelV4, LanguageModelV4CallOptions } from '@ai-sdk/provider';
@@ -12,12 +13,27 @@ export class LlmUnavailableError extends Error {
 }
 
 /** Gemini models from GEMINI_MODELS, in fallback order. */
+/** Default spacing between calls per provider (free tiers): Groq ≈30 req/min, Gemini ≈5 req/min. */
+const PROVIDER_INTERVAL_MS: Record<string, number> = { groq: 2500, google: 12_000 };
+const modelInterval = new WeakMap<object, number>();
+
 let cached: { key: string; models: LanguageModel[] } | null = null;
+/** Models from LLM_MODELS (provider:model), in fallback order. */
 export function getModels(): LanguageModel[] {
-  const key = `${env.googleApiKey}|${env.geminiModels.join(',')}`;
+  const key = `${env.googleApiKey}|${env.groqApiKey}|${env.llmModels.join(',')}`;
   if (cached?.key !== key) {
     const google = createGoogleGenerativeAI({ apiKey: env.googleApiKey });
-    cached = { key, models: env.geminiModels.map((id) => google(id)) };
+    const groq = env.groqApiKey ? createGroq({ apiKey: env.groqApiKey }) : null;
+    const models: LanguageModel[] = [];
+    for (const spec of env.llmModels) {
+      const [provider, ...rest] = spec.split(':');
+      const id = rest.join(':');
+      const m = provider === 'groq' ? groq?.(id) : provider === 'google' ? google(id) : undefined;
+      if (!m) continue;
+      modelInterval.set(m as object, PROVIDER_INTERVAL_MS[provider] ?? 5000);
+      models.push(m);
+    }
+    cached = { key, models };
   }
   return cached.models; // same instances → shared pacing/cooldowns across features
 }
@@ -74,10 +90,39 @@ export async function withModelFallback<T>(
 // every request, so multi-step agents never restart from scratch.
 // ---------------------------------------------------------------------------
 
-/** Google RetryInfo ("37s") from an error response body. */
-export function parseRetryDelayMs(body?: string): number | undefined {
-  const m = body?.match(/"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/);
-  return m ? Math.ceil(Number(m[1]) * 1000) : undefined;
+/** Retry hint from Google RetryInfo ("37s"), Groq "try again in 1m2.5s", or a retry-after header. */
+export function parseRetryDelayMs(body?: string, headers?: Record<string, string>): number | undefined {
+  const g = body?.match(/"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/);
+  if (g) return Math.ceil(Number(g[1]) * 1000);
+  const t = body?.match(/try again in\s+((?:\d+h)?(?:\d+m(?!s))?(?:\d+(?:\.\d+)?s)?(?:\d+(?:\.\d+)?ms)?)/i)?.[1];
+  if (t) {
+    const part = (re: RegExp) => Number(t.match(re)?.[1] ?? 0);
+    const ms = part(/(\d+)h/) * 3_600_000 + part(/(\d+)m(?!s)/) * 60_000 + part(/(\d+(?:\.\d+)?)s/) * 1000 + part(/(\d+(?:\.\d+)?)ms/);
+    if (ms > 0) return Math.ceil(ms);
+  }
+  const h = headers?.['retry-after'] ?? headers?.['Retry-After'];
+  if (h && !Number.isNaN(Number(h))) return Math.ceil(Number(h) * 1000);
+  return undefined;
+}
+
+/**
+ * Keeps agent history small (Groq free tier: 8k tokens/min): tool results older than the last
+ * `keepLast` tool messages are replaced by a short preview.
+ */
+export function compactMessages<M extends { role: string; content: any }>(messages: M[], keepLast = 2, previewChars = 400): M[] {
+  const toolIdx = messages.map((m, i) => (m.role === 'tool' ? i : -1)).filter((i) => i >= 0);
+  const old = new Set(toolIdx.slice(0, Math.max(0, toolIdx.length - keepLast)));
+  return messages.map((m, i) => {
+    if (!old.has(i) || !Array.isArray(m.content)) return m;
+    return {
+      ...m,
+      content: m.content.map((p: any) => {
+        if (p.type !== 'tool-result') return p;
+        const raw = typeof p.output?.value === 'string' ? p.output.value : JSON.stringify(p.output?.value ?? p.output);
+        return { ...p, output: { type: 'text', value: raw.length > previewChars ? `${raw.slice(0, previewChars)}…[older result shortened]` : raw } };
+      }),
+    };
+  });
 }
 
 interface Slot { model: LanguageModelV4; coolUntil: number; lastCall: number }
@@ -90,7 +135,7 @@ export function resilientModel(opts: {
   cooldownMs?: number; // default cooldown after 429 when Google gives no retryDelay
   baseDelayMs?: number;
 } = {}): LanguageModel {
-  const minInterval = opts.minIntervalMs ?? Number(process.env.GEMINI_MIN_INTERVAL_MS ?? 12_000);
+  const intervalFor = (m: object) => opts.minIntervalMs ?? modelInterval.get(m) ?? 5000;
   const maxWait = opts.maxWaitMs ?? 120_000;
   const cooldown = opts.cooldownMs ?? 30_000;
   const base = opts.baseDelayMs ?? 1500;
@@ -114,7 +159,7 @@ export function resilientModel(opts: {
         await sleep(Math.max(1, wake - Date.now()));
         continue;
       }
-      const gap = ready.lastCall + minInterval - Date.now();
+      const gap = ready.lastCall + intervalFor(ready.model) - Date.now();
       if (gap > 0) await sleep(gap);
       for (let attempt = 0; attempt < 3; attempt++) {
         ready.lastCall = Date.now();
@@ -124,8 +169,13 @@ export function resilientModel(opts: {
           const status = statusOf(e);
           const id = ready.model.modelId;
           if (status === 429) {
-            ready.coolUntil = Date.now() + (parseRetryDelayMs((e as any)?.responseBody) ?? cooldown);
+            ready.coolUntil = Date.now() + (parseRetryDelayMs((e as any)?.responseBody, (e as any)?.responseHeaders) ?? cooldown);
             failures.push(`${id}: 429`);
+            break;
+          }
+          if (status === 413) {
+            ready.coolUntil = Date.now() + 15_000;
+            failures.push(`${id}: 413`);
             break;
           }
           if (status === 404) {
@@ -134,7 +184,9 @@ export function resilientModel(opts: {
             failures.push(`${id}: 404`);
             break;
           }
-          const transient = (status !== undefined && status >= 500) || (status === undefined && isTimeout(e));
+          // Groq answers malformed model tool calls with 400 tool_use_failed: a fresh sample usually works.
+          const badToolCall = status === 400 && /tool_use_failed|failed to parse tool call/i.test(`${(e as any)?.responseBody ?? ''} ${(e as any)?.message ?? ''}`);
+          const transient = badToolCall || (status !== undefined && status >= 500) || (status === undefined && isTimeout(e));
           if (!transient) throw e;
           failures.push(`${id}: ${status ?? 'timeout'}`);
           if (attempt === 2) {
