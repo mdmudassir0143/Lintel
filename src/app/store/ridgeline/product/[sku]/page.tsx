@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation';
-import { storeState } from '../../storeData';
+import { storeState, JsonLd } from '../../storeData';
 import { AddToCart, ClientPrice } from '../../client';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ProductPage({ params }: { params: Promise<{ sku: string }> }) {
   const { sku } = await params;
-  const { installed, catalog } = storeState();
+  const { installed, catalog, name } = storeState();
   const p = catalog.find((x) => x.sku === sku);
   if (!p) notFound();
   return (
@@ -24,6 +24,7 @@ export default async function ProductPage({ params }: { params: Promise<{ sku: s
         )}
         <div className="my-4 text-2xl font-bold">{installed ? `$${p.price}` : <ClientPrice sku={p.sku} />}</div>
         <AddToCart sku={p.sku} />
+        {installed && <JsonLd products={[p]} storeName={name} />}
       </div>
     </div>
   );

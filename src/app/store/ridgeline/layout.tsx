@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { storeState } from './storeData';
 import { CookieWall } from './client';
+import { env } from '@/lib/env';
+import { MERCHANT_ID } from './storeData';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +25,13 @@ export default function StoreLayout({ children }: { children: ReactNode }) {
         Small-batch roasting since 2014 · Demo store for Lintel
       </footer>
       {!installed && <CookieWall />}
+      {installed && (
+        <>
+          {/* Lintel install snippet (what a merchant pastes into their theme) */}
+          <script src={`${env.publicBaseUrl}/lintel.js`} data-merchant={MERCHANT_ID} data-base={env.publicBaseUrl} async />
+          <link rel="agent-manifest" href={`${env.publicBaseUrl}/m/${MERCHANT_ID}/agent/manifest.json`} />
+        </>
+      )}
     </div>
   );
 }
