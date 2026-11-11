@@ -5,7 +5,7 @@ import { resilientModel, compactMessages } from '../llm';
 import { env } from '../env';
 import type { LiveOutcome } from '../scan/checks';
 import type { AgentDeps } from './headless';
-import { addStep, setRunStatus, setLiveViewUrl } from './runLog';
+import { addStep, setRunStatus, setLiveViewUrl, failRun } from './runLog';
 import { waitForApproval } from './approval';
 
 export const BROWSER_MAX_STEPS = 20;
@@ -272,7 +272,7 @@ export async function runBrowserAgent(args: {
       },
     });
   } catch (e) {
-    setRunStatus(runId, 'failed', `Agent stopped: ${(e as Error).message}`);
+    failRun(runId, e);
     await opened.close().catch(() => {});
     return outcome();
   }

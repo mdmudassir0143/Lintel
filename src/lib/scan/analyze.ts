@@ -73,7 +73,7 @@ export async function writeFindings(url: string, checks: CheckResult[], opts: Op
           maxRetries: 0,
           schema: FINDINGS_SCHEMA,
           prompt: `You advise a small online store owner (not technical) about why AI shopping agents fail to buy from their store at ${url}.
-Write 3-5 short findings (max 25 words each), most costly problem first. Plain English, no jargon like "JSON-LD" or "x402" without a 3-word explanation. Each finding: what's wrong + what it costs them.
+Write 3-5 short findings (max 25 words each), most costly problem first. Plain English, no jargon like "JSON-LD" or "x402" without a 3-word explanation. Each finding is one natural sentence that says what's wrong and what it costs them, e.g. "Your robots.txt turns AI shopping agents away, so your coffee never shows up when someone asks an assistant to buy some." Never use labels like "cost:" or dashes to bolt on the cost.
 Check results: ${JSON.stringify(failed.map(({ title, status, evidence }) => ({ title, status, evidence })))}`,
         });
     return object.findings.slice(0, 6);

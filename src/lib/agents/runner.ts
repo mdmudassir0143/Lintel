@@ -1,4 +1,4 @@
-import { createRun, setRunStatus } from './runLog';
+import { createRun, setRunStatus, failRun } from './runLog';
 import { runHeadlessAgent, DEFAULT_GOAL } from './headless';
 import { updateLiveAgentResult } from '../scan/runScan';
 import { paypal } from '../server/paypal';
@@ -24,6 +24,6 @@ export function startRun(r: { kind: AgentKind; url: string; goal?: string; scanI
     .then((outcome) => {
       if (r.scanId) updateLiveAgentResult(r.scanId, outcome, `${r.kind} agent run`);
     })
-    .catch((e) => setRunStatus(runId, 'failed', `Agent crashed: ${(e as Error).message}`));
+    .catch((e) => failRun(runId, e));
   return runId;
 }

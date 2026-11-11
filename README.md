@@ -69,7 +69,7 @@ Per-product schema.org `Product` JSON-LD is generated too.
 
 ## Try it (hosted)
 
-**Live demo:** `https://<your-render-url>`. Start at the home page and click **Or scan our demo shop**.
+**Live demo:** `https://<your-render-url>`. Start at the landing page and click **Scan our demo coffee shop**, or **Launch app** for the dashboard.
 
 **Sandbox test buyer** (PayPal sandbox only, fake money). Use it when an agent asks you to approve a payment:
 
@@ -79,7 +79,7 @@ Per-product schema.org `Product` JSON-LD is generated too.
 Demo flow:
 1. Scan the demo shop. It scores 0.
 2. Click **Watch an agent shop in a browser**. The agent fails at the account wall.
-3. Click **Fix this store with Lintel**, then **Fix it with Lintel**.
+3. Click **Fix this store**, then **Install Lintel**.
 4. Click **Scan the store** (score 70), then send the agent again.
 5. Approve in PayPal. The agent pays, and the score reaches 100.
 
@@ -92,7 +92,7 @@ npm install
 npx playwright install chromium        # local browser for the browser agent
 cp .env.example .env                   # fill in PAYPAL_CLIENT_ID/SECRET, GROQ_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY
 npx dotenv -e .env -- npm run dev      # http://localhost:3000
-npm test                               # 77 tests (one live PayPal sandbox test runs when PAYPAL_CLIENT_ID is set)
+npm test                               # 100 tests (one live PayPal sandbox test runs when PAYPAL_CLIENT_ID is set)
 ```
 
 With `BROWSER_PROVIDER=local` (the default), the browser agent runs a local headless Chromium. `BROWSER_PROVIDER=kernel` uses Kernel cloud browsers; those need a public URL, because they cannot reach `localhost`.
@@ -113,6 +113,8 @@ Project layout:
 - `src/lib/agents/*`: headless and browser agents
 - `public/lintel.js`: the installed script
 - `src/app/store/ridgeline`: the demo store (before and after modes)
+- `src/app/page.tsx`: landing page; `src/app/app/*`: the dashboard (overview, readiness report, agent run, store); `src/app/docs`: developer docs
+- `src/components/*`: design system (brand mark, UI primitives, the lintel score beam)
 
 ## License
 

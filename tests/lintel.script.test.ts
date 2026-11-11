@@ -92,7 +92,7 @@ describe('lintel.js', () => {
           return ok({ status: 'paid', paypalOrderId: 'O1', captureId: 'C1', amount: '22.00' });
         }
       }
-      return routes(url, init);
+      return routes(url);
     });
     await ready;
     await (window as any).__lintel.call('add_to_cart', { sku: 'RC-ETH12', qty: 1 });

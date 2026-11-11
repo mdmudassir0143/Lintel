@@ -1,0 +1,54 @@
+import Link from 'next/link';
+import { Wordmark, Mark } from './brand';
+import { ButtonLink } from './ui';
+
+export function SiteNav() {
+  return (
+    <header className="sticky top-0 z-30 border-b border-joint/70 bg-plaster/85 backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-5 md:px-8">
+        <Wordmark />
+        <nav className="hidden items-center gap-7 text-[15px] text-basalt/75 md:flex">
+          <Link href="/#how" className="hover:text-basalt">How it works</Link>
+          <Link href="/#payments" className="hover:text-basalt">Payments</Link>
+          <Link href="/docs" className="hover:text-basalt">Developers</Link>
+          <Link href="/#faq" className="hover:text-basalt">FAQ</Link>
+        </nav>
+        <div className="flex items-center gap-2">
+          <ButtonLink href="/docs" variant="ghost" size="sm" className="md:hidden">Docs</ButtonLink>
+          <ButtonLink href="/app" variant="dark" size="sm">Launch app</ButtonLink>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export function SiteFooter() {
+  return (
+    <footer className="border-t border-joint">
+      <div className="mx-auto grid max-w-[1200px] gap-10 px-5 py-12 md:grid-cols-[1.5fr_1fr_1fr_1fr] md:px-8">
+        <div>
+          <Wordmark />
+          <p className="mt-3 max-w-xs text-sm leading-relaxed text-weather">Keeps the door open for AI shoppers, and settles what they buy through PayPal.</p>
+        </div>
+        <FooterCol title="Product" links={[['How it works', '/#how'], ['Payments', '/#payments'], ['The nine checks', '/#checks'], ['Launch app', '/app']]} />
+        <FooterCol title="Developers" links={[['Docs', '/docs'], ['x402 scheme', '/docs#scheme'], ['lintel.js tools', '/docs#tools']]} />
+        <FooterCol title="Try it" links={[['Demo store', '/store/ridgeline'], ['Demo dashboard', '/app/stores/ridgeline']]} />
+      </div>
+      <div className="mx-auto flex max-w-[1200px] items-center justify-between border-t border-joint px-5 py-5 text-[13px] text-weather md:px-8">
+        <span className="flex items-center gap-2"><Mark className="h-3.5 w-3.5" /> Lintel, 2026</span>
+        <span>Payments run in PayPal sandbox during the preview.</span>
+      </div>
+    </footer>
+  );
+}
+
+function FooterCol({ title, links }: { title: string; links: [string, string][] }) {
+  return (
+    <div>
+      <p className="text-sm font-semibold">{title}</p>
+      <ul className="mt-3 space-y-2 text-sm text-weather">
+        {links.map(([l, h]) => <li key={h}><Link href={h} className="hover:text-basalt">{l}</Link></li>)}
+      </ul>
+    </div>
+  );
+}

@@ -18,7 +18,7 @@ export type LiveOutcome = 'completed' | 'reached_payment' | 'added_to_cart' | 'f
 
 const AI_BOTS = ['GPTBot', 'ClaudeBot', 'PerplexityBot', 'Google-Extended'];
 
-const META: Record<Exclude<CheckId, 'site_unreachable'>, { weight: number; title: string; why: string }> = {
+export const CHECK_META: Record<Exclude<CheckId, 'site_unreachable'>, { weight: number; title: string; why: string }> = {
   live_agent: { weight: 30, title: 'An AI agent can complete a purchase', why: 'This is the real test: we send an AI shopping agent to find a product and pay.' },
   product_jsonld: { weight: 15, title: 'Products are machine-readable', why: 'Agents read structured product data (name, price, stock) instead of guessing from page layout.' },
   server_rendered_prices: { weight: 10, title: 'Prices are visible without JavaScript', why: 'Many agents read the raw page. If prices only appear after scripts run, the agent sees no prices.' },
@@ -31,7 +31,7 @@ const META: Record<Exclude<CheckId, 'site_unreachable'>, { weight: number; title
 };
 
 function result(id: Exclude<CheckId, 'site_unreachable'>, status: CheckResult['status'], evidence: string): CheckResult {
-  return { id, status, ...META[id], evidence };
+  return { id, status, ...CHECK_META[id], evidence };
 }
 
 function visibleText(html: string): string {
@@ -75,7 +75,7 @@ export function runStaticChecks(s: SiteSnapshot): CheckResult[] {
     const why = s.error ?? 'Site could not be reached';
     return [
       { id: 'site_unreachable', status: 'fail', weight: 0, title: 'We could not load your store', why: 'Agents cannot buy from a page that will not load for them.', evidence: why },
-      ...(Object.keys(META) as (keyof typeof META)[])
+      ...(Object.keys(CHECK_META) as (keyof typeof CHECK_META)[])
         .filter((id) => id !== 'live_agent')
         .map((id) => result(id, 'fail', `Site could not be reached (${why})`)),
     ];
@@ -132,5 +132,5 @@ export function liveAgentCheck(outcome: LiveOutcome, evidence: string): CheckRes
     failed: 'Agent could not buy anything',
     not_run: 'Not tested yet — run the agent',
   }[outcome];
-  return { id: 'live_agent', status, ...META.live_agent, earned, evidence: evidence ? `${label}: ${evidence}` : label };
+  return { id: 'live_agent', status, ...CHECK_META.live_agent, earned, evidence: evidence ? `${label}: ${evidence}` : label };
 }

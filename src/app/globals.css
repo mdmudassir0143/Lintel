@@ -1,24 +1,41 @@
 @import "tailwindcss";
 
 @theme {
-  --color-stone: #e8ecef;
-  --color-stone-deep: #d9dfe4;
-  --color-ink: #1e2935;
-  --color-mortar: #8d99a6;
-  --color-steel: #2c5a88;
-  --color-steel-deep: #1f4468;
-  --color-pass: #2e7d5b;
-  --color-fail: #b42318;
-  --color-wait: #b97f00;
+  --color-plaster: #f3f4f1;
+  --color-plaster-deep: #e8eae5;
+  --color-basalt: #1a1f24;
+  --color-basalt-soft: #262c33;
+  --color-weather: #6b737b;
+  --color-joint: #daddd7;
+  --color-patina: #0e7c66;
+  --color-patina-deep: #0a5f4e;
+  --color-patina-wash: #e3f0ec;
+  --color-oxide: #b3261e;
+  --color-oxide-wash: #f8e7e5;
+  --color-ochre: #a86b00;
+  --color-ochre-wash: #f7eedc;
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
 
-body { background: var(--color-stone); color: var(--color-ink); }
-.wide { font-stretch: 125%; }
-.num { font-variant-numeric: tabular-nums; }
-:focus-visible { outline: 2px solid var(--color-steel); outline-offset: 2px; }
+html { scroll-behavior: smooth; }
+body { background: var(--color-plaster); color: var(--color-basalt); }
 
-@keyframes set-stone { from { transform: translateY(-14px); opacity: 0; } to { transform: none; opacity: 1; } }
-.stone { animation: set-stone 420ms cubic-bezier(.2,.8,.2,1) both; }
-@media (prefers-reduced-motion: reduce) { .stone { animation: none; } }
-.hatch { background-image: repeating-linear-gradient(135deg, var(--color-ink) 0 2px, transparent 2px 7px); }
+/* Inscription: display type cut at full expanded width. */
+.inscribe { font-stretch: 125%; font-weight: 800; letter-spacing: -0.02em; }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--color-patina); outline-offset: 2px; border-radius: 4px; }
+::selection { background: var(--color-patina); color: white; }
+
+/* The one orchestrated moment: stones set into the beam. */
+@keyframes set-stone { from { transform: translateY(-18px); opacity: 0; } to { transform: none; opacity: 1; } }
+.stone { animation: set-stone 520ms cubic-bezier(.2,.8,.2,1) both; }
+@keyframes line-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.line-in { animation: line-in 360ms ease-out both; }
+@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+.pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .stone, .line-in, .pulse-dot { animation: none; }
+  html { scroll-behavior: auto; }
+}
+.hatch { background-image: repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 7px); }

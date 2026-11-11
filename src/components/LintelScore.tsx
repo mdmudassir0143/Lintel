@@ -1,36 +1,49 @@
 import type { CheckResult } from '@/lib/scan/checks';
 
-const ORDER = ['live_agent', 'product_jsonld', 'server_rendered_prices', 'no_blocking_interstitial', 'paypal_checkout', 'webmcp_tools', 'robots_allows_ai', 'guest_checkout', 'agent_checkout'];
+export const CHECK_ORDER = ['live_agent', 'product_jsonld', 'server_rendered_prices', 'no_blocking_interstitial', 'paypal_checkout', 'webmcp_tools', 'robots_allows_ai', 'guest_checkout', 'agent_checkout'] as const;
 
-/** The score drawn as a lintel: one stone per check, width = weight; posts below form the doorway. */
-export function LintelScore({ checks, score, size = 'lg' }: { checks: CheckResult[]; score: number; size?: 'lg' | 'sm' }) {
-  const stones = ORDER.map((id) => checks.find((c) => c.id === id)).filter(Boolean) as CheckResult[];
-  const tone = score >= 75 ? 'text-pass' : score >= 40 ? 'text-wait' : 'text-fail';
-  const h = size === 'lg' ? 'h-10' : 'h-5';
+type Stone = Pick<CheckResult, 'id' | 'weight' | 'status' | 'title'>;
+
+function stoneClass(status: Stone['status']) {
+  if (status === 'pass') return 'bg-basalt';
+  if (status === 'partial') return 'hatch border border-basalt text-basalt/70';
+  return 'border border-dashed border-oxide/60 bg-oxide-wash';
+}
+
+/** The beam: one stone per check, its width set by the check's weight. */
+export function Beam({ checks, className = 'h-10', animate = true, delayMs = 0 }: { checks: Stone[]; className?: string; animate?: boolean; delayMs?: number }) {
+  const stones = CHECK_ORDER.map((id) => checks.find((c) => c.id === id)).filter(Boolean) as Stone[];
+  return (
+    <div className={`flex gap-[3px] ${className}`}>
+      {stones.map((c, i) => (
+        <div
+          key={c.id}
+          title={`${c.title}: ${c.status}`}
+          style={{ flexGrow: c.weight, animationDelay: `${delayMs + i * 70}ms` }}
+          className={`min-w-0 basis-0 ${animate ? 'stone' : ''} ${stoneClass(c.status)}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function scoreTone(score: number) {
+  return score >= 75 ? 'text-patina' : score >= 40 ? 'text-ochre' : 'text-oxide';
+}
+
+/** The score drawn as a lintel over a doorway, with the number inside the door. */
+export function LintelScore({ checks, score }: { checks: CheckResult[]; score: number }) {
   return (
     <figure className="w-full" aria-label={`Agent-readiness score ${score} out of 100`}>
-      <div className={`flex gap-[3px] ${h}`}>
-        {stones.map((c, i) => (
-          <div
-            key={c.id}
-            title={`${c.title}: ${c.status}`}
-            style={{ flexGrow: c.weight, animationDelay: `${i * 70}ms` }}
-            className={`stone basis-0 rounded-[2px] ${
-              c.status === 'pass' ? 'bg-ink' : c.status === 'partial' ? 'hatch border border-ink' : 'border border-dashed border-fail/70 bg-fail/5'
-            }`}
-          />
-        ))}
-      </div>
-      {size === 'lg' && (
-        <div className="flex justify-between">
-          <div className="h-24 w-[10%] bg-stone-deep" />
-          <div className="flex flex-col items-center justify-center pt-4">
-            <span className={`wide num text-7xl font-extrabold leading-none ${tone}`}>{score}</span>
-            <span className="mt-1 text-sm text-ink/60">out of 100</span>
-          </div>
-          <div className="h-24 w-[10%] bg-stone-deep" />
+      <Beam checks={checks} className="h-9" />
+      <div className="flex justify-between">
+        <div className="h-28 w-[9%] bg-plaster-deep" />
+        <div className="flex flex-col items-center justify-center pt-3">
+          <span className={`inscribe num text-[76px] leading-none ${scoreTone(score)}`}>{score}</span>
+          <span className="mt-1 text-sm text-weather">out of 100</span>
         </div>
-      )}
+        <div className="h-28 w-[9%] bg-plaster-deep" />
+      </div>
     </figure>
   );
 }

@@ -6,7 +6,7 @@ import { env } from '../env';
 import type { PayPalApi } from '../paypal/client';
 import type { LiveOutcome } from '../scan/checks';
 import { decodeHeader, encodeHeader, type PaymentRequired } from '../x402/paypalScheme';
-import { addStep, setRunStatus } from './runLog';
+import { addStep, setRunStatus, failRun } from './runLog';
 import { waitForApproval } from './approval';
 
 export const DEFAULT_GOAL = 'Buy one 12 oz bag of Ethiopian coffee for under $25.';
@@ -167,7 +167,7 @@ export async function runHeadlessAgent(args: { runId: string; url: string; goal:
         });
   } catch (e) {
     const o = outcome();
-    setRunStatus(runId, 'failed', `Agent stopped: ${(e as Error).message}`);
+    failRun(runId, e);
     return o;
   }
 

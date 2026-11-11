@@ -41,3 +41,22 @@ export function getRun(runId: string, opts: { screenshots?: boolean } = { screen
   const steps = (db.prepare(`select ${cols} from steps where run_id = ? order by idx`).all(runId) as any[]).map((s) => ({ ...s, detail: JSON.parse(s.detail) }));
   return { run, steps };
 }
+
+export type RunListItem = Pick<RunRow, 'id' | 'scan_id' | 'kind' | 'goal' | 'status' | 'summary' | 'created_at'>;
+
+/** A merchant's most recent agent runs, newest first (no live-view URLs). */
+export function latestRuns(merchantId: string, limit = 10): RunListItem[] {
+  return getDb()
+    .prepare('select id, scan_id, kind, goal, status, summary, created_at from runs where merchant_id = ? order by created_at desc limit ?')
+    .all(merchantId, limit) as RunListItem[];
+}
+
+/** Marks a run failed with a summary a merchant can read; the raw error goes to the step log. */
+export function failRun(runId: string, e: unknown): void {
+  const err = e as { name?: string; message?: string };
+  addStep(runId, 'error', { message: String(err?.message ?? e) });
+  const summary = err?.name === 'LlmUnavailableError'
+    ? 'The AI model was busy, so the agent stopped. Send it again in a minute.'
+    : 'The agent hit an unexpected error and stopped. Send it again.';
+  setRunStatus(runId, 'failed', summary);
+}
