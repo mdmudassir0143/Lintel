@@ -40,3 +40,16 @@ services:
         sync: false
       - key: LINTEL_SECRET
         generateValue: true
+
+  # Fernwood Tea Co.: a separate test shop (plain Node, no dependencies) used to try Lintel like a merchant.
+  # Its theme <head> code is the HEAD_HTML environment variable, set in the Render dashboard.
+  - type: web
+    name: fernwood-tea
+    runtime: node
+    plan: free
+    buildCommand: echo "No build step"
+    startCommand: node demo-shop/server.mjs
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_VERSION
+        value: "22"

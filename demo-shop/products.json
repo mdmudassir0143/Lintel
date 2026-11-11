@@ -1,8 +1,86 @@
 [
-  { "handle": "sencha-kyoto", "sku": "FW-SEN-50", "title": "Kyoto Sencha, 50 g tin", "description": "Bright, grassy Japanese green tea from Uji. Steep at 75°C for one minute.", "price": "14.00", "inStock": true },
-  { "handle": "tieguanyin-oolong", "sku": "FW-OOL-50", "title": "Tieguanyin Oolong, 50 g", "description": "Floral, creamy Anxi oolong, lightly roasted. Good for many short steeps.", "price": "18.50", "inStock": true },
-  { "handle": "assam-breakfast", "sku": "FW-ASM-100", "title": "Assam Breakfast, 100 g", "description": "Malty, strong black tea that takes milk well.", "price": "11.00", "inStock": true },
-  { "handle": "earl-grey-bergamot", "sku": "FW-EGB-100", "title": "Earl Grey with real bergamot, 100 g", "description": "Ceylon black tea with cold-pressed Calabrian bergamot oil.", "price": "13.00", "inStock": true },
-  { "handle": "chamomile-flowers", "sku": "FW-CHA-40", "title": "Whole Chamomile Flowers, 40 g", "description": "Caffeine-free Egyptian chamomile. Honeyed and calming.", "price": "9.50", "inStock": false },
-  { "handle": "cast-iron-teapot", "sku": "FW-POT-08", "title": "Cast Iron Teapot, 0.8 L", "description": "Enamelled Tetsubin with a steel infuser.", "price": "48.00", "inStock": true }
+  {
+    "handle": "kyoto-sencha",
+    "sku": "FW-SEN-50",
+    "category": "Green",
+    "title": "Kyoto Sencha, 50 g tin",
+    "description": "Bright, grassy Japanese green tea from Uji. Steep at 75°C for one minute.",
+    "notes": "Cut grass, sweet pea, sea air",
+    "origin": "Uji, Japan",
+    "price": "14.00",
+    "inStock": true,
+    "band": "#5d7a3a"
+  },
+  {
+    "handle": "jasmine-pearls",
+    "sku": "FW-JAS-50",
+    "category": "Green",
+    "title": "Jasmine Pearls, 50 g",
+    "description": "Hand-rolled green tea scented with fresh jasmine blossoms over six nights.",
+    "notes": "Jasmine, honey, pear",
+    "origin": "Fujian, China",
+    "price": "19.00",
+    "inStock": true,
+    "band": "#8a9a5b"
+  },
+  {
+    "handle": "tieguanyin-oolong",
+    "sku": "FW-OOL-50",
+    "category": "Oolong",
+    "title": "Tieguanyin Oolong, 50 g",
+    "description": "Floral, creamy Anxi oolong, lightly roasted. Good for many short steeps.",
+    "notes": "Orchid, cream, toasted rice",
+    "origin": "Anxi, China",
+    "price": "18.50",
+    "inStock": true,
+    "band": "#3f6b6a"
+  },
+  {
+    "handle": "assam-breakfast",
+    "sku": "FW-ASM-100",
+    "category": "Black",
+    "title": "Assam Breakfast, 100 g",
+    "description": "Malty, strong black tea that takes milk well.",
+    "notes": "Malt, cocoa, raisin",
+    "origin": "Assam, India",
+    "price": "11.00",
+    "inStock": true,
+    "band": "#8a4b2e"
+  },
+  {
+    "handle": "earl-grey-bergamot",
+    "sku": "FW-EGB-100",
+    "category": "Black",
+    "title": "Earl Grey with real bergamot, 100 g",
+    "description": "Ceylon black tea with cold-pressed Calabrian bergamot oil.",
+    "notes": "Bergamot, citrus peel, black tea",
+    "origin": "Sri Lanka",
+    "price": "13.00",
+    "inStock": true,
+    "band": "#3b4a6b"
+  },
+  {
+    "handle": "chamomile-flowers",
+    "sku": "FW-CHA-40",
+    "category": "Herbal",
+    "title": "Whole Chamomile Flowers, 40 g",
+    "description": "Caffeine-free Egyptian chamomile. Honeyed and calming.",
+    "notes": "Honey, apple, hay",
+    "origin": "Fayoum, Egypt",
+    "price": "9.50",
+    "inStock": false,
+    "band": "#b8963a"
+  },
+  {
+    "handle": "cast-iron-teapot",
+    "sku": "FW-POT-08",
+    "category": "Teaware",
+    "title": "Cast Iron Teapot, 0.8 L",
+    "description": "Enamelled Tetsubin with a steel infuser.",
+    "notes": "Holds heat, pours four cups",
+    "origin": "Iwate, Japan",
+    "price": "48.00",
+    "inStock": true,
+    "band": "#2f2f2f"
+  }
 ]
