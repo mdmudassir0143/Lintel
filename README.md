@@ -69,7 +69,7 @@ Per-product schema.org `Product` JSON-LD is generated too.
 
 ## Try it (hosted)
 
-**Live demo:** `https://<your-render-url>`. Start at the landing page and click **Try it on a demo store**, or **Launch app** for the dashboard.
+**Live demo:** `https://<your-render-url>`. Start at the landing page and click **Try it on a demo store**, or **Open app** for the dashboard.
 
 **Sandbox test buyer** (PayPal sandbox only, fake money). Use it when an agent asks you to approve a payment:
 
