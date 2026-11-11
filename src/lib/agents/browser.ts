@@ -5,6 +5,7 @@ import { resilientModel, compactMessages } from '../llm';
 import { env } from '../env';
 import type { LiveOutcome } from '../scan/checks';
 import type { AgentDeps } from './headless';
+import { invokeSiteTool, listSiteTools } from './siteTools';
 import { addStep, setRunStatus, setLiveViewUrl, failRun } from './runLog';
 import { waitForApproval } from './approval';
 
@@ -92,32 +93,19 @@ export async function runBrowserAgent(args: {
     await page.waitForTimeout(1200);
   };
 
-  const siteTools = () =>
-    page.evaluate(async () => {
+  const siteTools = async () => {
+    // Wait for the store's tools to register (lintel.js loads async), then list them.
+    await page.evaluate(async () => {
       const w = window as any;
       const d = document as any;
       const until = Date.now() + 4000;
       while (!w.__lintel && !d.modelContext?.getTools && Date.now() < until) await new Promise((r) => setTimeout(r, 200));
       if (w.__lintel?.ready) await Promise.race([w.__lintel.ready, new Promise((r) => setTimeout(r, 3000))]);
-      const list = d.modelContext?.getTools ? await d.modelContext.getTools() : w.__lintel?.tools ?? [];
-      return list.map((t: any) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }));
     });
+    return page.evaluate(listSiteTools);
+  };
 
-  const callSite = (name: string, toolArgs: unknown) =>
-    page.evaluate(
-      async ([n, a]) => {
-        const w = window as any;
-        const d = document as any;
-        try {
-          if (d.modelContext?.executeTool) return await d.modelContext.executeTool(n, a);
-          if (w.__lintel?.call) return await w.__lintel.call(n, a);
-          return { error: 'This page has no site tools.' };
-        } catch (e) {
-          return { error: String((e as Error).message ?? e) };
-        }
-      },
-      [name, toolArgs ?? {}] as const,
-    );
+  const callSite = (name: string, toolArgs: unknown) => page.evaluate(invokeSiteTool, [name, toolArgs ?? {}] as const);
 
   const observeToolResult = (name: string, out: any) => {
     if (name === 'search_products' && out?.products?.length) state.foundProduct = true;
