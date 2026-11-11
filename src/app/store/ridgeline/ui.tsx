@@ -31,7 +31,9 @@ export function roastLevel(p: Product): 0 | 1 | 2 | 3 {
 
 /** A short label for the bag: the part before the dash, without size. */
 export function shortName(p: Product) {
-  return p.title.split('—')[0].replace(/\b\d+\s?(oz|lb|g)\b/gi, '').replace(/\s+/g, ' ').trim();
+  const name = p.title.split(/\s[—–-]\s|,/)[0].replace(/\b\d+\s?(oz|lb|g)\b/gi, '').replace(/\s+/g, ' ').trim();
+  if (name.length <= 28) return name;
+  return name.slice(0, 28).replace(/\s+\S*$/, ''); // never cut a word in half
 }
 
 /** Illustrated product shot: a kraft coffee bag with a printed label (or a pour-over set). */
@@ -63,7 +65,7 @@ export function ProductArt({ p, size = 'md' }: { p: Product; size?: 'sm' | 'md' 
           <rect x="62" y="82" width="76" height="20" rx="4" fill={label} />
           <text x="100" y="96" textAnchor="middle" fontSize="8.5" fill="#fff" fontFamily="Georgia, serif" letterSpacing="1">RIDGELINE</text>
           <foreignObject x="66" y="106" width="68" height="40">
-            <div style={{ font: '600 9px/1.15 Georgia, serif', color: R.ink, textAlign: 'center' }}>{shortName(p).slice(0, 36)}</div>
+            <div style={{ font: '600 9px/1.15 Georgia, serif', color: R.ink, textAlign: 'center' }}>{shortName(p)}</div>
           </foreignObject>
           {[0, 1, 2].map((i) => (
             <circle key={i} cx={88 + i * 12} cy="160" r="4" fill={i < roast ? label : 'none'} stroke={label} strokeWidth="1.5" />
