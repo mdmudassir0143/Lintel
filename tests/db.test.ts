@@ -23,7 +23,7 @@ describe('env', () => {
   it('applies defaults when unset', () => {
     const env = loadEnv({});
     expect(env.geminiModels[0]).toBe('gemini-3.5-flash');
-    expect(env.approvalTimeoutMs).toBe(300000);
+    expect(env.approvalTimeoutMs).toBe(900000);
     expect(env.browserProvider).toBe('local');
     expect(env.publicBaseUrl).toBe('http://localhost:3000');
   });

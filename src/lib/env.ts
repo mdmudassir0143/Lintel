@@ -36,7 +36,7 @@ export function loadEnv(src: Source = process.env): Env {
     kernelApiKey: src.KERNEL_API_KEY || undefined,
     browserProvider: src.BROWSER_PROVIDER === 'kernel' ? 'kernel' : 'local',
     publicBaseUrl: (src.PUBLIC_BASE_URL || src.RENDER_EXTERNAL_URL || 'http://localhost:3000').replace(/\/$/, ''),
-    approvalTimeoutMs: Number(src.APPROVAL_TIMEOUT_MS) || 300000,
+    approvalTimeoutMs: Number(src.APPROVAL_TIMEOUT_MS) || 900000,
     dbPath: src.DB_PATH || './lintel.db',
     buyerEmail: src.PAYPAL_SANDBOX_BUYER_EMAIL || undefined,
   };
