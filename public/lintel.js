@@ -49,6 +49,10 @@
     try { return JSON.parse(sessionStorage.getItem(CART_KEY) || '[]'); } catch (e) { return []; }
   }
   function writeCart(c) { sessionStorage.setItem(CART_KEY, JSON.stringify(c)); }
+  var PENDING_KEY = CART_KEY + ':pending';
+  function readPending() {
+    try { return JSON.parse(sessionStorage.getItem(PENDING_KEY) || 'null'); } catch (e) { return null; }
+  }
   function headers(extra) {
     var h = { 'content-type': 'application/json' };
     if (window.__lintelRunId) h['X-Lintel-Run'] = String(window.__lintelRunId);
@@ -65,7 +69,7 @@
     add_to_cart: 'Add a product to the cart by SKU and quantity.',
     view_cart: 'Show the cart with line totals and the order total in USD.',
     checkout_with_paypal: 'Start checkout for the cart. Returns a PayPal approval link the human must approve before payment. Always ask the human first.',
-    confirm_payment: 'After the human approved in PayPal, complete the purchase with the orderId and nonce from checkout.',
+    confirm_payment: 'After the human approved in PayPal, complete the purchase. orderId and nonce default to the last checkout.',
   };
 
   var tools = [
@@ -138,6 +142,7 @@
           return r.json().then(function (body) {
             if (r.status === 402 && body.accepts && body.accepts[0]) {
               var req = body.accepts[0];
+              sessionStorage.setItem(PENDING_KEY, JSON.stringify({ orderId: req.extra.orderId, nonce: req.extra.nonce }));
               return {
                 status: 'approval_required',
                 amount: req.amount,
@@ -156,12 +161,15 @@
     {
       name: 'confirm_payment',
       annotations: { consequential: true },
-      inputSchema: { type: 'object', properties: { orderId: { type: 'string' }, nonce: { type: 'string' } }, required: ['orderId', 'nonce'] },
+      inputSchema: { type: 'object', properties: { orderId: { type: 'string' }, nonce: { type: 'string' } } },
       execute: function (a) {
+        var last = readPending() || {};
+        a = { orderId: (a && a.orderId) || last.orderId, nonce: (a && a.nonce) || last.nonce };
+        if (!a.orderId || !a.nonce) return Promise.resolve({ error: 'No checkout to confirm. Call checkout_with_paypal first.' });
         var proof = btoa(JSON.stringify({ x402Version: 2, scheme: 'paypal-order', network: 'paypal:sandbox', payload: { orderId: a.orderId, nonce: a.nonce } }));
         return fetch(api + '/checkout', { method: 'POST', headers: headers({ 'PAYMENT-SIGNATURE': proof }), body: JSON.stringify({ items: readCart() }) }).then(function (r) {
           return r.json().then(function (body) {
-            if (r.ok) { writeCart([]); return body; }
+            if (r.ok) { writeCart([]); sessionStorage.removeItem(PENDING_KEY); return body; }
             if (r.status === 402) return { status: 'not_approved_yet', message: 'The human has not approved the PayPal payment yet.' };
             return { error: body.error || 'Payment failed (' + r.status + ')' };
           });

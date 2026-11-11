@@ -82,6 +82,26 @@ describe('lintel.js', () => {
     expect((await (window as any).__lintel.call('view_cart', {})).items).toEqual([]);
   });
 
+  it('confirm_payment with no args uses the order from the last checkout', async () => {
+    const proofs: string[] = [];
+    const { ready } = boot((url, init) => {
+      if (url.endsWith('/agent/checkout')) {
+        const sig = new Headers(init?.headers).get('PAYMENT-SIGNATURE');
+        if (sig) {
+          proofs.push(sig);
+          return ok({ status: 'paid', paypalOrderId: 'O1', captureId: 'C1', amount: '22.00' });
+        }
+      }
+      return routes(url, init);
+    });
+    await ready;
+    await (window as any).__lintel.call('add_to_cart', { sku: 'RC-ETH12', qty: 1 });
+    await (window as any).__lintel.call('checkout_with_paypal', {});
+    const r = await (window as any).__lintel.call('confirm_payment', {});
+    expect(r.status).toBe('paid');
+    expect(JSON.parse(atob(proofs[0])).payload).toEqual({ orderId: 'O1', nonce: 'N1' });
+  });
+
   it('add_to_cart rejects unknown sku', async () => {
     const { ready } = boot(routes);
     await ready;
