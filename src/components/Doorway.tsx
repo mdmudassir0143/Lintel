@@ -18,7 +18,7 @@ const LINES: Line[] = [
 ];
 
 function T({ children }: { children: React.ReactNode }) {
-  return <span className="font-mono text-[0.88em] text-basalt">{children}</span>;
+  return <span className="font-mono text-[0.88em] text-ink">{children}</span>;
 }
 
 /** Hero: the lintel sets stone by stone, then the agent walks through the open door. */
@@ -27,31 +27,31 @@ export function Doorway() {
     <div className="relative" aria-label="An AI agent buying coffee through a store that uses Lintel">
       <Beam checks={OPEN} className="h-11 sm:h-14" />
       <div className="mt-[3px] flex gap-[3px] px-[4%]">
-        <div className="w-[8%] shrink-0 bg-basalt stone" style={{ animationDelay: '700ms' }} />
+        <div className="w-[8%] shrink-0 bg-night stone" style={{ animationDelay: '700ms' }} />
         <div className="min-w-0 flex-1 bg-white px-4 pb-6 pt-5 sm:px-7">
-          <div className="flex items-center justify-between text-[13px] text-weather">
-            <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-patina" aria-hidden />AI agent, shopping</span>
+          <div className="flex items-center justify-between text-[13px] text-muted">
+            <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-brand pulse-dot" aria-hidden />AI agent, shopping</span>
             <span className="hidden sm:inline">Ridgeline Coffee Roasters</span>
           </div>
-          <ol className="mt-4 space-y-3 text-[14px] leading-snug text-basalt/80 sm:text-[15px]">
+          <ol className="mt-4 space-y-3 text-[14px] leading-snug text-ink/80 sm:text-[15px]">
             {LINES.map((l, i) => (
               <li key={i} className="line-in flex gap-3" style={{ animationDelay: `${1000 + i * 380}ms` }}>
                 <span aria-hidden className={`mt-[3px] grid h-4 w-4 shrink-0 place-items-center rounded-full text-[10px] font-bold ${
-                  l.mark === 'ok' ? 'bg-patina text-white' : l.mark === 'wait' ? 'bg-ochre-wash text-ochre ring-1 ring-ochre/40' : 'bg-basalt text-white'}`}>
+                  l.mark === 'ok' ? 'bg-brand text-white' : l.mark === 'wait' ? 'bg-warning-wash text-warning ring-1 ring-warning/40' : 'bg-night text-white'}`}>
                   {l.mark === 'ok' ? '✓' : l.mark === 'wait' ? '$' : '?'}
                 </span>
-                <span className={l.mark === 'goal' ? 'font-semibold text-basalt' : ''}>{l.text}</span>
+                <span className={l.mark === 'goal' ? 'font-semibold text-ink' : ''}>{l.text}</span>
               </li>
             ))}
           </ol>
-          <div className="line-in mt-6 flex items-center justify-between rounded-md bg-patina-wash px-4 py-3" style={{ animationDelay: `${1000 + LINES.length * 380}ms` }}>
-            <span className="text-sm font-semibold text-patina-deep">Order paid through PayPal</span>
-            <span className="inscribe num text-xl text-patina-deep">$22.00</span>
+          <div className="line-in mt-6 flex items-center justify-between rounded-lg bg-success-wash px-4 py-3" style={{ animationDelay: `${1000 + LINES.length * 380}ms` }}>
+            <span className="text-sm font-semibold text-success-ink">Order paid through PayPal</span>
+            <span className="headline num text-xl text-success-ink">$22.00</span>
           </div>
         </div>
-        <div className="w-[8%] shrink-0 bg-basalt stone" style={{ animationDelay: '700ms' }} />
+        <div className="w-[8%] shrink-0 bg-night stone" style={{ animationDelay: '700ms' }} />
       </div>
-      <div className="mx-[1%] h-[3px] bg-basalt/15" aria-hidden />
+      <div className="mx-[1%] h-[3px] bg-ink/15" aria-hidden />
     </div>
   );
 }

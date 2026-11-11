@@ -26,14 +26,14 @@ export default function Docs() {
           <nav className="sticky top-24 space-y-1 text-[15px]">
             <p className="mb-3 font-semibold">Developer docs</p>
             {SECTIONS.map(([id, label]) => (
-              <a key={id} href={`#${id}`} className="block rounded px-2 py-1 text-weather hover:bg-white hover:text-basalt">{label}</a>
+              <a key={id} href={`#${id}`} className="block rounded px-2 py-1 text-muted hover:bg-white hover:text-ink">{label}</a>
             ))}
           </nav>
         </aside>
 
         <article className="min-w-0 max-w-[760px]">
-          <h1 className="inscribe text-[40px] leading-tight">Developer docs</h1>
-          <p className="mt-3 text-[17px] leading-relaxed text-weather">
+          <h1 className="t-h1">Developer docs</h1>
+          <p className="mt-3 text-[17px] leading-relaxed text-muted">
             How agents find a Lintel store, read its catalog, and pay for a cart. Everything here is plain HTTP and JSON.
           </p>
 
@@ -121,8 +121,8 @@ export default function Docs() {
           <Section id="errors" title="Errors">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[520px] text-left text-[15px]">
-                <thead className="text-[13px] text-weather"><tr className="border-b border-joint"><th className="py-2 font-medium">Status</th><th className="font-medium">error</th><th className="font-medium">Meaning</th></tr></thead>
-                <tbody className="divide-y divide-joint">
+                <thead className="text-[13px] text-muted"><tr className="border-b border-line"><th className="py-2 font-medium">Status</th><th className="font-medium">error</th><th className="font-medium">Meaning</th></tr></thead>
+                <tbody className="divide-y divide-line">
                   {[
                     ['402', 'payment_not_approved', 'The buyer hasn’t approved yet. The body repeats the original requirement, so keep the same order.'],
                     ['400', 'cart_mismatch', 'The cart changed after the order was created. Start checkout again.'],
@@ -133,7 +133,7 @@ export default function Docs() {
                     ['402', 'capture_failed', 'PayPal declined the capture.'],
                     ['404', 'not_installed', 'This store hasn’t turned on Lintel.'],
                   ].map(([s, e, d]) => (
-                    <tr key={e} className="align-top"><td className="num py-2.5 pr-4">{s}</td><td className="py-2.5 pr-4"><C>{e}</C></td><td className="py-2.5 text-weather">{d}</td></tr>
+                    <tr key={e} className="align-top"><td className="num py-2.5 pr-4">{s}</td><td className="py-2.5 pr-4"><C>{e}</C></td><td className="py-2.5 text-muted">{d}</td></tr>
                   ))}
                 </tbody>
               </table>
@@ -145,7 +145,7 @@ export default function Docs() {
               <C>lintel.js</C> registers these tools with <C>document.modelContext</C> (WebMCP), and falls back to its own copy of that interface in browsers without it.
               Tools marked consequential ask the agent to involve the person first.
             </p>
-            <dl className="divide-y divide-joint border-y border-joint">
+            <dl className="divide-y divide-line border-y border-line">
               {[
                 ['search_products', '{ query }', 'Products whose name, description or attributes match every word.'],
                 ['get_product', '{ sku }', 'One product in full.'],
@@ -155,8 +155,8 @@ export default function Docs() {
                 ['confirm_payment', '{ orderId?, nonce? }', 'Consequential. After approval, pays with the proof. Defaults to the last checkout.'],
               ].map(([n, a, d]) => (
                 <div key={n} className="grid gap-1 py-3 sm:grid-cols-[13rem_1fr]">
-                  <dt><C>{n}</C> <span className="font-mono text-[12px] text-weather">{a}</span></dt>
-                  <dd className="text-weather">{d}</dd>
+                  <dt><C>{n}</C> <span className="font-mono text-[12px] text-muted">{a}</span></dt>
+                  <dd className="text-muted">{d}</dd>
                 </div>
               ))}
             </dl>
@@ -170,25 +170,25 @@ export default function Docs() {
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-24 border-t border-joint pt-10 mt-12">
-      <h2 className="inscribe text-[24px]">{title}</h2>
-      <div className="mt-4 space-y-4 text-[16px] leading-relaxed text-basalt/85">{children}</div>
+    <section id={id} className="scroll-mt-24 border-t border-line pt-10 mt-12">
+      <h2 className="t-h3">{title}</h2>
+      <div className="mt-4 space-y-4 text-[16px] leading-relaxed text-ink/85">{children}</div>
     </section>
   );
 }
 
 function C({ children }: { children: ReactNode }) {
-  return <code className="rounded bg-plaster-deep px-1.5 py-0.5 font-mono text-[0.85em] text-basalt">{children}</code>;
+  return <code className="rounded bg-subtle-strong px-1.5 py-0.5 font-mono text-[0.85em] text-ink">{children}</code>;
 }
 
 function Pre({ children }: { children: ReactNode }) {
-  return <pre className="overflow-x-auto rounded-[10px] bg-basalt p-4 font-mono text-[12.5px] leading-[1.7] text-white/85">{children}</pre>;
+  return <pre className="overflow-x-auto rounded-xl bg-night p-4 font-mono text-[12.5px] leading-[1.7] text-white/85">{children}</pre>;
 }
 
 function Endpoint({ method, path }: { method: string; path: string }) {
   return (
     <p className="flex flex-wrap items-center gap-2 font-mono text-[13px]">
-      <span className={`rounded px-1.5 py-0.5 font-semibold ${method === 'GET' ? 'bg-patina-wash text-patina-deep' : 'bg-ochre-wash text-ochre'}`}>{method}</span>
+      <span className={`rounded px-1.5 py-0.5 font-semibold ${method === 'GET' ? 'bg-success-wash text-success-ink' : 'bg-warning-wash text-warning'}`}>{method}</span>
       <span className="break-all">{path}</span>
     </p>
   );

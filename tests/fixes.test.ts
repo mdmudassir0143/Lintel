@@ -47,6 +47,12 @@ describe('fix generation', () => {
     expect(out[0].attributes.origin).toBe('Ethiopia');
   });
 
+  it('cleanCatalog drops placeholder attribute values like N/A', async () => {
+    const llmOut = { products: [{ sku: 'RC-ETH12', title: 'Ethiopia Yirgacheffe', description: 'd', attributes: [{ name: 'origin', value: 'Ethiopia' }, { name: 'process', value: 'N/A' }, { name: 'flavor', value: 'none' }, { name: 'size', value: ' unknown ' }, { name: 'roast', value: '-' }] }] };
+    const out = await cleanCatalog([eth], { models: [scriptedModel([textResult(JSON.stringify(llmOut))])] });
+    expect(out[0].attributes).toEqual({ origin: 'Ethiopia' });
+  });
+
   it('cleanCatalog keeps raw product when LLM omits it', async () => {
     const model = scriptedModel([textResult(JSON.stringify({ products: [] }))]);
     const out = await cleanCatalog([eth], { models: [model] });

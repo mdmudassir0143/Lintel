@@ -94,13 +94,13 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
     return (
       <AppShell crumbs={crumbs}>
         <div className="pt-16">
-          <h1 className="inscribe text-3xl">This run doesn’t exist</h1>
+          <h1 className="t-h2">This run doesn’t exist</h1>
           <ButtonLink href="/app" className="mt-6">Go to overview</ButtonLink>
         </div>
       </AppShell>
     );
   if (!data)
-    return <AppShell crumbs={crumbs}><p className="flex items-center gap-2 pt-12 text-weather"><Spinner /> Loading the run</p></AppShell>;
+    return <AppShell crumbs={crumbs}><p className="flex items-center gap-2 pt-12 text-muted"><Spinner /> Loading the run</p></AppShell>;
 
   const { run } = data;
   const steps = data.steps.filter((s) => s.action !== 'error');
@@ -116,49 +116,49 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
       <div className="pt-6">
         <div className="flex flex-wrap items-center gap-3">
           <Pill tone={st.tone}>{st.label}</Pill>
-          <span className="text-sm text-weather">{run.kind === 'browser' ? 'Browser agent' : 'API-only agent'}</span>
+          <span className="text-sm text-muted">{run.kind === 'browser' ? 'Browser agent' : 'API-only agent'}</span>
         </div>
-        <h1 className="inscribe mt-3 max-w-[860px] text-[28px] leading-tight sm:text-[32px]">{run.goal}</h1>
+        <h1 className="t-h2 mt-3 max-w-[860px]">{run.goal}</h1>
       </div>
 
       <div aria-live="polite">
         {run.status === 'awaiting_approval' && approval && (
-          <Panel className="mt-6 border-ochre/40">
+          <Panel className="mt-6 border-warning/40">
             <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-medium text-ochre">The agent is at checkout</p>
-                <p className="inscribe mt-1 text-[26px] leading-tight">Approve <span className="num">${approval.amount}</span> in PayPal</p>
-                <p className="mt-1 max-w-[560px] text-[15px] text-weather">Nothing is charged until you approve. Log in with the sandbox buyer account, press Pay, and the agent finishes the purchase.</p>
+                <p className="text-sm font-medium text-warning">The agent is at checkout</p>
+                <p className="t-h2 mt-1">Approve <span className="num">${approval.amount}</span> in PayPal</p>
+                <p className="mt-1 max-w-[560px] text-[15px] text-muted">Nothing is charged until you approve. Log in with the sandbox buyer account, press Pay, and the agent finishes the purchase.</p>
               </div>
               <a href={approval.approveUrl} target="_blank" rel="noreferrer" className={buttonClass('paypal', 'lg', 'shrink-0 font-bold')}>Approve in PayPal</a>
             </div>
           </Panel>
         )}
         {paid && (
-          <Panel className="mt-6 border-patina/30 bg-patina-wash">
+          <Panel className="mt-6 border-success/30 bg-success-wash">
             <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-medium text-patina-deep">Order paid through PayPal</p>
-                <p className="inscribe num mt-1 text-[32px] leading-none text-patina-deep">${paid.amount}</p>
-                <p className="num mt-2 break-all text-sm text-basalt/70">PayPal order {paid.paypalOrderId}, capture {paid.captureId}</p>
+                <p className="text-sm font-medium text-success-ink">Order paid through PayPal</p>
+                <p className="t-stat mt-1 text-success-ink">${paid.amount}</p>
+                <p className="num mt-2 break-all text-sm text-ink/70">PayPal order {paid.paypalOrderId}, capture {paid.captureId}</p>
               </div>
               {run.merchant_id && <ButtonLink href={`/app/stores/${run.merchant_id}`} variant="secondary">See it in the store’s orders</ButtonLink>}
             </div>
           </Panel>
         )}
         {run.status === 'failed' && (
-          <Panel className="mt-6 border-oxide/30 bg-oxide-wash">
+          <Panel className="mt-6 border-danger/30 bg-danger-wash">
             <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="font-semibold text-oxide">The agent couldn’t buy</p>
-                <p className="mt-1 max-w-[640px] text-basalt/80">{run.summary}</p>
+                <p className="font-semibold text-danger">The agent couldn’t buy</p>
+                <p className="mt-1 max-w-[640px] text-ink/80">{run.summary}</p>
               </div>
               {run.merchant_id && <ButtonLink href={`/app/stores/${run.merchant_id}`} variant="dark">Fix this store</ButtonLink>}
             </div>
           </Panel>
         )}
         {run.status === 'succeeded' && !paid && run.summary && (
-          <Panel className="mt-6 p-6"><p className="font-semibold text-patina-deep">{run.summary}</p></Panel>
+          <Panel className="mt-6 p-6"><p className="font-semibold text-success-ink">{run.summary}</p></Panel>
         )}
       </div>
 
@@ -170,21 +170,21 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
               const tone = stepTone(s);
               return (
                 <li key={s.idx} className="relative grid grid-cols-[1.5rem_1fr_auto] gap-3 py-3">
-                  {i < steps.length - 1 && <span aria-hidden className="absolute left-[11px] top-9 h-[calc(100%-1.5rem)] w-px bg-joint" />}
+                  {i < steps.length - 1 && <span aria-hidden className="absolute left-[11px] top-9 h-[calc(100%-1.5rem)] w-px bg-line" />}
                   <span aria-hidden className={`relative mt-0.5 grid h-6 w-6 place-items-center rounded-full text-[11px] font-bold ${
-                    tone === 'ok' ? 'bg-patina text-white' : tone === 'bad' ? 'bg-oxide-wash text-oxide' : tone === 'pay' ? 'bg-ochre-wash text-ochre' : 'border border-joint bg-white text-weather'}`}>
+                    tone === 'ok' ? 'bg-success text-white' : tone === 'bad' ? 'bg-danger-wash text-danger' : tone === 'pay' ? 'bg-warning-wash text-warning' : 'border border-line bg-white text-muted'}`}>
                     {tone === 'ok' ? '✓' : tone === 'bad' ? '!' : tone === 'pay' ? '$' : s.idx + 1}
                   </span>
                   <div className="min-w-0">
                     <p className="font-semibold leading-snug">{LABEL[s.action] ?? s.action}</p>
-                    <p className="break-words text-[14px] leading-relaxed text-weather">{describe(s)}</p>
+                    <p className="break-words text-[14px] leading-relaxed text-muted">{describe(s)}</p>
                   </div>
-                  <span className="num pt-0.5 text-[13px] text-weather/80">{elapsed(run.created_at, s.created_at)}</span>
+                  <span className="num pt-0.5 text-[13px] text-muted/80">{elapsed(run.created_at, s.created_at)}</span>
                 </li>
               );
             })}
             {active && (
-              <li className="flex items-center gap-3 py-3 pl-0.5 text-sm text-weather">
+              <li className="flex items-center gap-3 py-3 pl-0.5 text-sm text-muted">
                 <Spinner className="h-5 w-5" /> {run.status === 'awaiting_approval' ? 'Waiting for your approval' : 'Thinking about the next step'}
               </li>
             )}
@@ -194,9 +194,9 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
         <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
           {run.kind === 'browser' ? (
             <Panel className="overflow-hidden">
-              <div className="flex items-center gap-3 border-b border-joint px-4 py-2.5">
-                <span className="flex gap-1.5" aria-hidden>{[0, 1, 2].map((d) => <span key={d} className="h-2.5 w-2.5 rounded-full bg-plaster-deep" />)}</span>
-                <span className="min-w-0 flex-1 truncate rounded bg-plaster px-3 py-1 text-[13px] text-weather">
+              <div className="flex items-center gap-3 border-b border-line px-4 py-2.5">
+                <span className="flex gap-1.5" aria-hidden>{[0, 1, 2].map((d) => <span key={d} className="h-2.5 w-2.5 rounded-full bg-subtle-strong" />)}</span>
+                <span className="min-w-0 flex-1 truncate rounded bg-subtle px-3 py-1 text-[13px] text-muted">
                   {steps.find((s) => s.action === 'goto')?.detail?.output?.url ?? 'Starting browser'}
                 </span>
                 {active && run.live_view_url ? <Pill tone="live">Live</Pill> : null}
@@ -207,13 +207,13 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={`/api/run/${id}/step/${lastShot}`} alt="What the agent saw at its latest step" className="w-full bg-white" />
               ) : (
-                <div className="grid aspect-[16/10] place-items-center bg-plaster text-sm text-weather"><span className="flex items-center gap-2"><Spinner /> Opening a browser</span></div>
+                <div className="grid aspect-[16/10] place-items-center bg-subtle text-sm text-muted"><span className="flex items-center gap-2"><Spinner /> Opening a browser</span></div>
               )}
             </Panel>
           ) : (
             <Panel className="p-6">
               <p className="font-semibold">No browser involved</p>
-              <p className="mt-1 text-[15px] leading-relaxed text-weather">This agent shops over HTTP only, the way AI assistants call APIs: it reads the store’s agent manifest, then pays through the x402 checkout.</p>
+              <p className="mt-1 text-[15px] leading-relaxed text-muted">This agent shops over HTTP only, the way AI assistants call APIs: it reads the store’s agent manifest, then pays through the x402 checkout.</p>
             </Panel>
           )}
           {!active && run.scan_id && (

@@ -115,6 +115,7 @@ Project layout:
 - `src/app/store/ridgeline`: the demo store (before and after modes)
 - `src/app/page.tsx`: landing page; `src/app/app/*`: the dashboard (overview, readiness report, agent run, store); `src/app/docs`: developer docs
 - `src/components/*`: design system (brand mark, UI primitives, the lintel score beam)
+- `src/app/globals.css` + `src/lib/ui/tokens.ts`: the color template (palette, then roles) and type scale; see it live at `/brand`
 
 ## License
 

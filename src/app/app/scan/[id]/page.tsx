@@ -57,8 +57,8 @@ export default function ScanPage({ params }: { params: Promise<{ id: string }> }
     return (
       <AppShell crumbs={crumbs}>
         <div className="pt-16">
-          <h1 className="inscribe text-3xl">This report doesn’t exist</h1>
-          <p className="mt-2 text-weather">It may have been from an earlier session. Start a new scan from the overview.</p>
+          <h1 className="t-h2">This report doesn’t exist</h1>
+          <p className="mt-2 text-muted">It may have been from an earlier session. Start a new scan from the overview.</p>
           <ButtonLink href="/app" className="mt-6">Go to overview</ButtonLink>
         </div>
       </AppShell>
@@ -68,12 +68,12 @@ export default function ScanPage({ params }: { params: Promise<{ id: string }> }
     return (
       <AppShell crumbs={crumbs}>
         <div className="max-w-[720px] pt-12">
-          <p className="flex items-center gap-2 text-sm text-weather"><Spinner /> Scanning</p>
-          <h1 className="inscribe mt-3 break-words text-[30px] leading-tight">{scan?.url ?? 'Your store'}</h1>
-          <p className="mt-2 text-weather">Reading your pages, robots.txt and checkout the way an AI agent would. This takes a few seconds.</p>
+          <p className="flex items-center gap-2 text-sm text-muted"><Spinner /> Scanning</p>
+          <h1 className="t-h2 mt-3 break-words">{scan?.url ?? 'Your store'}</h1>
+          <p className="mt-2 text-muted">Reading your pages, robots.txt and checkout the way an AI agent would. This takes a few seconds.</p>
           <div className="mt-10 flex h-9 gap-[3px]">
             {CHECK_ORDER.map((c, i) => (
-              <div key={c} className="pulse-dot basis-0 border border-dashed border-weather/40" style={{ flexGrow: [30, 15, 10, 10, 10, 10, 5, 5, 5][i], animationDelay: `${i * 120}ms` }} />
+              <div key={c} className="pulse-dot basis-0 border border-dashed border-muted/40" style={{ flexGrow: [30, 15, 10, 10, 10, 10, 5, 5, 5][i], animationDelay: `${i * 120}ms` }} />
             ))}
           </div>
         </div>
@@ -88,15 +88,15 @@ export default function ScanPage({ params }: { params: Promise<{ id: string }> }
   const order = { fail: 0, partial: 1, pass: 2 } as const;
   const sorted = [...visible].sort((a, b) => order[a.status] - order[b.status]);
   const installed = scan.checks.find((c) => c.id === 'webmcp_tools')?.status === 'pass';
-  const bullet = failing === 0 ? 'bg-patina' : onlyLiveLeft ? 'bg-ochre' : 'bg-oxide';
+  const bullet = failing === 0 ? 'bg-success' : onlyLiveLeft ? 'bg-warning' : 'bg-danger';
 
   return (
     <AppShell crumbs={crumbs}>
       <div className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <h1 className="inscribe text-[30px] leading-tight">Readiness report</h1>
-          <p className="mt-1 truncate text-weather">
-            <a href={scan.url} target="_blank" rel="noreferrer" className="text-basalt underline decoration-joint underline-offset-4 hover:decoration-basalt">{scan.url}</a>
+          <h1 className="t-h2">Readiness report</h1>
+          <p className="mt-1 truncate text-muted">
+            <a href={scan.url} target="_blank" rel="noreferrer" className="text-ink underline decoration-line underline-offset-4 hover:decoration-ink">{scan.url}</a>
             {scan.created_at ? `, scanned ${timeAgo(scan.created_at)}` : ''}
           </p>
         </div>
@@ -113,7 +113,7 @@ export default function ScanPage({ params }: { params: Promise<{ id: string }> }
           </h2>
           <ul className="mt-3 space-y-3">
             {scan.findings.map((f, i) => (
-              <li key={i} className="grid grid-cols-[1.25rem_1fr] gap-2 leading-relaxed text-basalt/85">
+              <li key={i} className="grid grid-cols-[1.25rem_1fr] gap-2 leading-relaxed text-ink/85">
                 <span aria-hidden className={`mt-2 h-1.5 w-1.5 rounded-full ${bullet}`} />
                 {f}
               </li>
@@ -125,7 +125,7 @@ export default function ScanPage({ params }: { params: Promise<{ id: string }> }
           <Panel>
             <PanelHeader title="Send an AI agent to buy" sub="The real test, worth 30 points." />
             <div className="space-y-3 p-5">
-              <p className="text-[15px] leading-relaxed text-weather">
+              <p className="text-[15px] leading-relaxed text-muted">
                 {tested ? live!.evidence : 'Its goal: buy one 12 oz bag of Ethiopian coffee for under $25. If it reaches checkout, you approve the payment in PayPal.'}
               </p>
               <Button className="w-full" size="lg" onClick={() => sendAgent('browser')} disabled={!!starting}>
@@ -134,11 +134,11 @@ export default function ScanPage({ params }: { params: Promise<{ id: string }> }
               <Button className="w-full" variant="secondary" onClick={() => sendAgent('headless')} disabled={!!starting}>
                 {starting === 'headless' && <Spinner />} Send an API-only agent
               </Button>
-              {error && <p role="alert" className="text-sm text-oxide">{error}</p>}
+              {error && <p role="alert" className="text-sm text-danger">{error}</p>}
             </div>
           </Panel>
           {scan.merchant_id && (
-            <Panel className="border-basalt bg-basalt text-white">
+            <Panel className="border-ink bg-night text-white">
               <div className="p-5">
                 <p className="font-semibold">{installed ? 'Lintel is installed on this store' : 'Fix this store with Lintel'}</p>
                 <p className="mt-1 text-sm leading-relaxed text-white/65">
@@ -156,7 +156,7 @@ export default function ScanPage({ params }: { params: Promise<{ id: string }> }
       <Panel className="mt-6">
         <PanelHeader title="All nine checks" sub="Each stone in the beam is one check, as wide as its points." />
         <div className="px-5 pt-5"><Beam checks={scan.checks} className="h-5" animate={false} /></div>
-        <ul className="mt-3 divide-y divide-joint">
+        <ul className="mt-3 divide-y divide-line">
           {sorted.map((c) => {
             const earned = c.earned ?? Math.round(c.weight * { pass: 1, partial: 0.5, fail: 0 }[c.status]);
             return (
@@ -164,10 +164,10 @@ export default function ScanPage({ params }: { params: Promise<{ id: string }> }
                 <span><Pill tone={STATUS[c.status].tone}>{STATUS[c.status].label}</Pill></span>
                 <div className="min-w-0">
                   <p className="font-semibold">{c.title}</p>
-                  <p className="mt-0.5 break-words text-[15px] text-basalt/80">{c.evidence}</p>
-                  <p className="mt-1 text-sm text-weather">{c.why}</p>
+                  <p className="mt-0.5 break-words text-[15px] text-ink/80">{c.evidence}</p>
+                  <p className="mt-1 text-sm text-muted">{c.why}</p>
                 </div>
-                <span className="num text-sm text-weather sm:text-right"><span className="font-semibold text-basalt">{earned}</span> / {c.weight}</span>
+                <span className="num text-sm text-muted sm:text-right"><span className="font-semibold text-ink">{earned}</span> / {c.weight}</span>
               </li>
             );
           })}

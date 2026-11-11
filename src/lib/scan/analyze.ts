@@ -39,12 +39,15 @@ ${JSON.stringify(raw.map(({ sku, title, description }) => ({ sku, title, descrip
   return raw.map((p) => {
     const c = bySku.get(p.sku);
     if (!c) return p;
-    const attributes = Object.fromEntries((c.attributes ?? []).filter((a) => a.name && a.value).map((a) => [a.name, a.value]));
+    const attributes = Object.fromEntries((c.attributes ?? []).filter((a) => a.name && a.value && !PLACEHOLDER.test(a.value.trim())).map((a) => [a.name, a.value]));
     return { ...p, title: c.title || p.title, description: c.description || p.description, attributes };
   });
 }
 
 export const TOOL_NAMES = ['search_products', 'get_product', 'add_to_cart', 'view_cart', 'checkout_with_paypal', 'confirm_payment'] as const;
+
+/** Values the model uses for "nothing": agents should not see them as facts. */
+const PLACEHOLDER = /^(n\/?a|none|unknown|not applicable|-+|—)?$/i;
 
 export const TOOLS_SCHEMA = z.object(Object.fromEntries(TOOL_NAMES.map((n) => [n, z.string()])) as Record<(typeof TOOL_NAMES)[number], z.ZodString>);
 

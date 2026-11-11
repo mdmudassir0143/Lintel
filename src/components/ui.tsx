@@ -3,16 +3,16 @@ import type { ComponentProps, ReactNode } from 'react';
 
 type Variant = 'primary' | 'dark' | 'secondary' | 'ghost' | 'paypal';
 const VARIANT: Record<Variant, string> = {
-  primary: 'bg-patina text-white hover:bg-patina-deep',
-  dark: 'bg-basalt text-white hover:bg-basalt-soft',
-  secondary: 'border border-joint bg-white text-basalt hover:border-weather/50',
-  ghost: 'text-basalt hover:bg-basalt/5',
-  paypal: 'bg-[#ffc439] text-[#003087] hover:brightness-95',
+  primary: 'bg-brand text-white hover:bg-brand-hover',
+  dark: 'bg-night text-white hover:bg-night-raised',
+  secondary: 'border border-line-strong bg-surface text-ink hover:border-ink/40',
+  ghost: 'text-ink hover:bg-ink/5',
+  paypal: 'bg-paypal text-paypal-ink hover:brightness-95',
 };
 const SIZE = { sm: 'h-8 px-3 text-sm', md: 'h-10 px-4 text-[15px]', lg: 'h-12 px-6 text-base' } as const;
 
 export function buttonClass(variant: Variant = 'primary', size: keyof typeof SIZE = 'md', extra = '') {
-  return `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold transition-colors disabled:pointer-events-none disabled:opacity-55 ${VARIANT[variant]} ${SIZE[size]} ${extra}`;
+  return `inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg font-semibold transition-colors disabled:pointer-events-none disabled:opacity-55 ${VARIANT[variant]} ${SIZE[size]} ${extra}`;
 }
 
 export function Button({ variant = 'primary', size = 'md', className = '', ...p }: ComponentProps<'button'> & { variant?: Variant; size?: keyof typeof SIZE }) {
@@ -34,13 +34,13 @@ export function Spinner({ className = 'h-4 w-4' }: { className?: string }) {
 
 type Tone = 'pass' | 'fail' | 'wait' | 'neutral' | 'live';
 const TONE: Record<Tone, string> = {
-  pass: 'bg-patina-wash text-patina-deep',
-  fail: 'bg-oxide-wash text-oxide',
-  wait: 'bg-ochre-wash text-ochre',
-  neutral: 'bg-plaster-deep text-weather',
-  live: 'bg-patina-wash text-patina-deep',
+  pass: 'bg-success-wash text-success-ink',
+  fail: 'bg-danger-wash text-danger',
+  wait: 'bg-warning-wash text-warning',
+  neutral: 'bg-subtle-strong text-muted',
+  live: 'bg-brand-wash text-brand-ink',
 };
-const DOT: Record<Tone, string> = { pass: 'bg-patina', fail: 'bg-oxide', wait: 'bg-ochre', neutral: 'bg-weather', live: 'bg-patina pulse-dot' };
+const DOT: Record<Tone, string> = { pass: 'bg-success', fail: 'bg-danger', wait: 'bg-warning', neutral: 'bg-muted', live: 'bg-brand pulse-dot' };
 
 export function Pill({ tone = 'neutral', children }: { tone?: Tone; children: ReactNode }) {
   return (
@@ -52,17 +52,17 @@ export function Pill({ tone = 'neutral', children }: { tone?: Tone; children: Re
 }
 
 export function Panel({ className = '', children, ...p }: ComponentProps<'section'>) {
-  const bg = /(^|\s)bg-/.test(className) ? '' : 'bg-white';
-  const border = /(^|\s)border-(?!t|b|l|r|x|y)[a-z]/.test(className) ? '' : 'border-joint';
-  return <section {...p} className={`rounded-[10px] border ${border} ${bg} ${className}`}>{children}</section>;
+  const bg = /(^|\s)bg-/.test(className) ? '' : 'bg-surface';
+  const border = /(^|\s)border-(?!t|b|l|r|x|y)[a-z]/.test(className) ? '' : 'border-line';
+  return <section {...p} className={`rounded-xl border ${border} ${bg} ${className}`}>{children}</section>;
 }
 
 export function PanelHeader({ title, action, sub }: { title: ReactNode; sub?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-joint px-5 py-4">
+    <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
       <div className="min-w-0">
         <h2 className="text-[15px] font-semibold">{title}</h2>
-        {sub && <p className="mt-0.5 text-sm text-weather">{sub}</p>}
+        {sub && <p className="mt-0.5 text-sm text-muted">{sub}</p>}
       </div>
       {action}
     </div>
@@ -70,7 +70,7 @@ export function PanelHeader({ title, action, sub }: { title: ReactNode; sub?: Re
 }
 
 export function Code({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <code className={`rounded bg-plaster-deep px-1.5 py-0.5 font-mono text-[0.85em] ${className}`}>{children}</code>;
+  return <code className={`rounded bg-subtle-strong px-1.5 py-0.5 font-mono text-[0.85em] ${className}`}>{children}</code>;
 }
 
 export function timeAgo(ms: number): string {

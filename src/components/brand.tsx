@@ -15,9 +15,9 @@ export function Mark({ className = 'h-5 w-5' }: { className?: string }) {
 
 export function Wordmark({ href = '/', tone = 'dark' }: { href?: string; tone?: 'dark' | 'light' }) {
   return (
-    <Link href={href} className={`flex items-center gap-2 ${tone === 'light' ? 'text-white' : 'text-basalt'}`} aria-label="Lintel home">
+    <Link href={href} className={`flex items-center gap-2 ${tone === 'light' ? 'text-white' : 'text-ink'}`} aria-label="Lintel home">
       <Mark className="h-[18px] w-[18px]" />
-      <span className="inscribe text-[19px] leading-none">lintel</span>
+      <span className="headline text-[19px] leading-none">lintel</span>
     </Link>
   );
 }

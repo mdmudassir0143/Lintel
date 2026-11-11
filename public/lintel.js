@@ -45,6 +45,18 @@
     }
     return catalogPromise;
   }
+  // Search helpers: lower-case, "12oz" -> "12 oz", punctuation to spaces.
+  var STOP = ['a', 'an', 'the', 'for', 'of', 'and', 'or', 'with', 'to', 'in', 'my', 'some', 'buy', 'want', 'under', 'one', 'bag'];
+  function norm(t) {
+    return String(t).toLowerCase().replace(/(\d)\s*(oz|lb|lbs|g|kg|ml)\b/g, '$1 $2').replace(/[^a-z0-9.$ ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function forms(w) {
+    var out = [w];
+    ['ian', 'ean', 'an', 'es', 's', 'n'].forEach(function (suf) {
+      if (w.length - suf.length >= 4 && w.slice(-suf.length) === suf) out.push(w.slice(0, -suf.length));
+    });
+    return out;
+  }
   function readCart() {
     try { return JSON.parse(sessionStorage.getItem(CART_KEY) || '[]'); } catch (e) { return []; }
   }
@@ -77,14 +89,17 @@
       name: 'search_products',
       inputSchema: { type: 'object', properties: { query: { type: 'string' } } },
       execute: function (a) {
-        var q = String((a && a.query) || '').toLowerCase().trim();
+        var words = norm((a && a.query) || '').split(' ').filter(function (w) { return w && STOP.indexOf(w) === -1; });
         return catalog().then(function (ps) {
-          var words = q.split(/\s+/).filter(Boolean);
-          var hits = ps.filter(function (p) {
-            var hay = (p.title + ' ' + p.description + ' ' + JSON.stringify(p.attributes || {})).toLowerCase();
-            return words.every(function (w) { return hay.indexOf(w) !== -1; });
-          });
-          return { products: hits.map(summary) };
+          if (!words.length) return { products: ps.map(summary) };
+          // Rank by how many query words a product matches (with simple word forms), best first.
+          var ranked = ps.map(function (p) {
+            var hay = norm(p.title + ' ' + p.description + ' ' + JSON.stringify(p.attributes || {}));
+            var hits = words.filter(function (w) { return forms(w).some(function (f) { return hay.indexOf(f) !== -1; }); }).length;
+            return { p: p, hits: hits };
+          }).filter(function (r) { return r.hits > 0; });
+          ranked.sort(function (x, y) { return y.hits - x.hits; });
+          return { products: ranked.slice(0, 10).map(function (r) { return summary(r.p); }) };
         });
       },
     },

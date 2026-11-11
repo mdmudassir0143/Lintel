@@ -54,6 +54,24 @@ describe('lintel.js', () => {
     expect(r.products.map((p: any) => p.sku)).toEqual(['RC-ETH12']);
   });
 
+  it('search matches word forms and spacing: "Ethiopian 12oz" finds Ethiopia … 12 oz', async () => {
+    const { ready } = boot((url) => (url.endsWith('/agent/catalog')
+      ? ok({ products: [{ ...catalog[0], title: 'Ethiopia Yirgacheffe — Natural Process, 12 oz', attributes: { size: '12 oz' } }, catalog[1]] })
+      : routes(url)));
+    await ready;
+    for (const query of ['Ethiopian', 'Ethiopian coffee 12oz', 'ethiopian 12 oz bag']) {
+      const r = await (window as any).__lintel.call('search_products', { query });
+      expect(r.products.map((p: any) => p.sku)[0], query).toBe('RC-ETH12');
+    }
+  });
+
+  it('search ranks partial matches instead of returning nothing', async () => {
+    const { ready } = boot(routes);
+    await ready;
+    const r = await (window as any).__lintel.call('search_products', { query: 'berry espresso pods' });
+    expect(r.products.map((p: any) => p.sku)).toEqual(['RC-ETH12']);
+  });
+
   it('checkout returns approval_required on 402', async () => {
     const { ready, fetchMock } = boot(routes);
     await ready;

@@ -1,8 +1,9 @@
 import './globals.css';
 import type { ReactNode } from 'react';
-import { Archivo } from 'next/font/google';
+import { Host_Grotesk, Geist_Mono } from 'next/font/google';
 
-const archivo = Archivo({ subsets: ['latin'], axes: ['wdth'], variable: '--font-archivo', display: 'swap' });
+const host = Host_Grotesk({ subsets: ['latin'], variable: '--font-host', display: 'swap' });
+const mono = Geist_Mono({ subsets: ['latin'], variable: '--font-geist-mono', display: 'swap' });
 
 export const metadata = {
   title: { default: 'Lintel', template: '%s | Lintel' },
@@ -11,7 +12,7 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={archivo.variable}>
+    <html lang="en" className={`${host.variable} ${mono.variable}`}>
       <body className="font-sans antialiased">{children}</body>
     </html>
   );

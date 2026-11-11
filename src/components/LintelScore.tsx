@@ -5,9 +5,9 @@ export const CHECK_ORDER = ['live_agent', 'product_jsonld', 'server_rendered_pri
 type Stone = Pick<CheckResult, 'id' | 'weight' | 'status' | 'title'>;
 
 function stoneClass(status: Stone['status']) {
-  if (status === 'pass') return 'bg-basalt';
-  if (status === 'partial') return 'hatch border border-basalt text-basalt/70';
-  return 'border border-dashed border-oxide/60 bg-oxide-wash';
+  if (status === 'pass') return 'bg-brand';
+  if (status === 'partial') return 'hatch border border-brand text-brand/60';
+  return 'border border-dashed border-danger/60 bg-danger-wash';
 }
 
 /** The beam: one stone per check, its width set by the check's weight. */
@@ -28,7 +28,7 @@ export function Beam({ checks, className = 'h-10', animate = true, delayMs = 0 }
 }
 
 export function scoreTone(score: number) {
-  return score >= 75 ? 'text-patina' : score >= 40 ? 'text-ochre' : 'text-oxide';
+  return score >= 75 ? 'text-brand' : score >= 40 ? 'text-warning' : 'text-danger';
 }
 
 /** The score drawn as a lintel over a doorway, with the number inside the door. */
@@ -37,12 +37,12 @@ export function LintelScore({ checks, score }: { checks: CheckResult[]; score: n
     <figure className="w-full" aria-label={`Agent-readiness score ${score} out of 100`}>
       <Beam checks={checks} className="h-9" />
       <div className="flex justify-between">
-        <div className="h-28 w-[9%] bg-plaster-deep" />
+        <div className="h-28 w-[9%] bg-subtle-strong" />
         <div className="flex flex-col items-center justify-center pt-3">
-          <span className={`inscribe num text-[76px] leading-none ${scoreTone(score)}`}>{score}</span>
-          <span className="mt-1 text-sm text-weather">out of 100</span>
+          <span className={`headline num text-[76px] leading-none ${scoreTone(score)}`}>{score}</span>
+          <span className="mt-1 text-sm text-muted">out of 100</span>
         </div>
-        <div className="h-28 w-[9%] bg-plaster-deep" />
+        <div className="h-28 w-[9%] bg-subtle-strong" />
       </div>
     </figure>
   );

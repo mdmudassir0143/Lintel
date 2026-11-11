@@ -44,22 +44,22 @@ export function ScanForm({ size = 'lg', showDemo = true, tone = 'light' }: { siz
           placeholder="yourstore.com"
           autoComplete="url"
           inputMode="url"
-          className={`${h} w-full min-w-0 rounded-md sm:flex-1 border border-joint bg-white px-4 text-base text-basalt outline-none placeholder:text-weather/70 focus:border-patina`}
+          className={`${h} w-full min-w-0 rounded-lg sm:flex-1 border border-line-strong bg-surface px-4 text-base text-ink outline-none placeholder:text-muted/70 focus:border-brand focus:ring-4 focus:ring-brand/10`}
         />
         <Button type="submit" size={size} variant={tone === 'dark' ? 'dark' : 'primary'} disabled={!!busy}>
           {busy === 'mine' && <Spinner />}
           {busy === 'mine' ? 'Scanning' : 'Scan my store'}
         </Button>
       </form>
-      {error && <p role="alert" className="mt-2 text-sm text-oxide">{error}</p>}
+      {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
       {showDemo && (
-        <p className={`mt-3 text-sm ${tone === 'dark' ? 'text-white/60' : 'text-weather'}`}>
+        <p className={`mt-3 text-sm ${tone === 'dark' ? 'text-white/60' : 'text-muted'}`}>
           Free, no signup. No store handy?{' '}
           <button
             type="button"
             disabled={!!busy}
             onClick={() => scan(`${window.location.origin}/store/ridgeline`, 'demo')}
-            className={`font-medium underline decoration-1 underline-offset-4 ${tone === 'dark' ? 'text-white hover:text-white/80' : 'text-basalt hover:text-patina'}`}
+            className={`font-medium underline decoration-1 underline-offset-4 ${tone === 'dark' ? 'text-white hover:text-white/80' : 'text-ink hover:text-brand'}`}
           >
             {busy === 'demo' ? 'Scanning the demo shop…' : 'Scan our demo coffee shop'}
           </button>
