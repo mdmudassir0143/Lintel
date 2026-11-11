@@ -127,3 +127,23 @@ describe('lintel.js', () => {
     expect(r.error).toMatch(/unknown/i);
   });
 });
+
+describe('lintel.js installed by Shopify', () => {
+  it('reads the merchant and base from its own src when there are no data attributes', async () => {
+    document.head.innerHTML = '';
+    document.body.innerHTML = '';
+    sessionStorage.clear();
+    const s = document.createElement('script');
+    s.src = 'https://lintel.test/lintel.js?merchant=kettle&base=https%3A%2F%2Flintel.test';
+    document.head.appendChild(s);
+    const calls: string[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => { calls.push(String(url)); return new Response(JSON.stringify({ products: [] }), { status: 200 }); }));
+    delete (window as any).__lintel;
+    delete (document as any).modelContext;
+    (0, eval)(SRC);
+    await (window as any).__lintel.ready;
+    await (window as any).__lintel.call('search_products', { query: 'x' });
+    expect(calls.some((u) => u.startsWith('https://lintel.test/m/kettle/agent/'))).toBe(true);
+    vi.unstubAllGlobals();
+  });
+});

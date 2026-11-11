@@ -1,8 +1,9 @@
 'use client';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AppShell } from '@/components/AppShell';
 import { Button, Panel, Spinner } from '@/components/ui';
+import { ShopifyMark } from '@/components/brand';
 
 const input = 'h-11 w-full rounded-lg border border-line-strong bg-surface px-3.5 text-[15px] outline-none placeholder:text-muted/70 focus:border-brand focus:ring-4 focus:ring-brand/10';
 
@@ -20,7 +21,11 @@ function NewStoreForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(params.get('error') ?? '');
+  const [shopify, setShopify] = useState(false);
+  useEffect(() => {
+    fetch('/api/auth/providers').then((r) => r.json()).then((p) => setShopify(!!p.shopify)).catch(() => {});
+  }, []);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -40,7 +45,20 @@ function NewStoreForm() {
     <div className="mx-auto max-w-[620px] pt-10">
       <h1 className="t-h2">Add a store</h1>
       <p className="mt-2 text-soft">We’ll scan it right away and show you what stops AI agents from buying.</p>
-      <Panel className="mt-8">
+      {shopify && (
+        <Panel className="mt-8">
+          <form action="/api/auth/shopify" method="get" className="flex flex-col gap-3 p-6 sm:flex-row sm:items-center">
+            <ShopifyMark className="h-8 w-8 shrink-0 text-[#5e8e3e]" />
+            <div className="flex-1">
+              <p className="font-semibold">On Shopify? Connect in one step</p>
+              <p className="text-sm text-muted">Imports your products and adds Lintel to your storefront. No code.</p>
+            </div>
+            <input name="shop" required placeholder="your-store.myshopify.com" aria-label="Shopify store address" className={`${input} sm:w-60`} />
+            <Button type="submit">Connect</Button>
+          </form>
+        </Panel>
+      )}
+      <Panel className="mt-6">
         <form onSubmit={submit} className="space-y-5 p-6">
           <label className="block">
             <span className="text-sm font-medium">Store name</span>

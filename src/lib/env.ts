@@ -14,6 +14,12 @@ export interface Env {
   buyerEmail?: string;
   /** Accounts with these emails get the admin role. */
   adminEmails: string[];
+  googleClientId?: string;
+  googleClientSecret?: string;
+  shopifyApiKey?: string;
+  shopifyApiSecret?: string;
+  /** Key material for encrypting stored third-party tokens. */
+  lintelSecret: string;
 }
 
 type Source = Record<string, string | undefined>;
@@ -42,6 +48,11 @@ export function loadEnv(src: Source = process.env): Env {
     dbPath: src.DB_PATH || './lintel.db',
     buyerEmail: src.PAYPAL_SANDBOX_BUYER_EMAIL || undefined,
     adminEmails: list(src.ADMIN_EMAILS).map((e) => e.toLowerCase()),
+    googleClientId: src.GOOGLE_CLIENT_ID || undefined,
+    googleClientSecret: src.GOOGLE_CLIENT_SECRET || undefined,
+    shopifyApiKey: src.SHOPIFY_API_KEY || undefined,
+    shopifyApiSecret: src.SHOPIFY_API_SECRET || undefined,
+    lintelSecret: src.LINTEL_SECRET || `dev-only:${src.PAYPAL_CLIENT_SECRET ?? 'lintel'}`,
   };
 }
 

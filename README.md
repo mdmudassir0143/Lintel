@@ -91,6 +91,17 @@ Demo flow:
 - **Admin console** at `/admin` for accounts listed in `ADMIN_EMAILS`: all accounts, stores, agent runs, orders and revenue.
 - Merchants only see their own stores (plus the shared demo store). Store addresses must be public; agents and scans never reach private networks.
 
+### Google sign-in and Connect with Shopify
+
+Both are optional and appear only when their keys are set.
+
+- **Google:** in Google Cloud Console, create an OAuth client ID (type *Web application*) with the redirect URI `<PUBLIC_BASE_URL>/api/auth/google/callback`, then set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+- **Shopify:** in Shopify Partners, create an app with the allowed redirection URL `<PUBLIC_BASE_URL>/api/auth/shopify/callback`, then set `SHOPIFY_API_KEY` and `SHOPIFY_API_SECRET`. Connecting asks for `read_products` and `write_script_tags`: Lintel imports the products and adds its script to the storefront (needs an `https` `PUBLIC_BASE_URL`). Access tokens are stored encrypted with `LINTEL_SECRET`.
+
+### Data
+
+SQLite with WAL. On Render, `render.yaml` mounts a 1 GB persistent disk at `/var/data` and points `DB_PATH` there, so accounts, stores and orders survive deploys. `/api/health` checks the database.
+
 ## Run locally
 
 Requirements: Node 20+, a free PayPal developer sandbox app (a **US** sandbox Business account is required for USD), and a free Groq key and/or Gemini key.

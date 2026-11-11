@@ -36,11 +36,11 @@ describe('stores', () => {
     expect(() => createStore(alice, { name: 'A', url: 'a.test', paypalEmail: 'nope' })).toThrow(/PayPal/);
   });
 
-  it('owners see their stores plus the shared demo; admins see everything', () => {
+  it('everyone’s store list is their own stores plus the demo; admins can still open any store', () => {
     const a = createStore(alice, { name: 'Alice Shop', url: 'alice.test' });
     createStore(bob, { name: 'Bob Shop', url: 'bob.test' });
     expect(listStoresFor(alice).map((s) => s.id).sort()).toEqual([a.id, 'ridgeline'].sort());
-    expect(listStoresFor(admin)).toHaveLength(3);
+    expect(listStoresFor(admin).map((s) => s.id)).toEqual(['ridgeline']);
     expect(canAccessStore(alice, getStore(a.id)!)).toBe(true);
     expect(canAccessStore(bob, getStore(a.id)!)).toBe(false);
     expect(canAccessStore(admin, getStore(a.id)!)).toBe(true);

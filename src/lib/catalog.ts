@@ -30,6 +30,9 @@ export interface MerchantRow {
   created_at: number | null;
   install_verified_at: number | null;
   paypal_verified_at: number | null;
+  platform?: string | null;
+  shopify_shop?: string | null;
+  shopify_token?: string | null;
 }
 
 export function getMerchant(id: string): MerchantRow | undefined {

@@ -7,10 +7,15 @@
 (function () {
   'use strict';
   var script =
-    document.currentScript || document.querySelector('script[data-merchant][src*="lintel.js"]') || document.querySelector('script[data-merchant]');
+    document.currentScript ||
+    document.querySelector('script[data-merchant][src*="lintel.js"]') ||
+    document.querySelector('script[src*="lintel.js"][src*="merchant="]') || // added by Shopify's script tag API
+    document.querySelector('script[data-merchant]');
   if (!script) return;
-  var merchant = script.getAttribute('data-merchant');
-  var base = script.getAttribute('data-base') || new URL(script.src, location.href).origin;
+  var srcParams = new URL(script.src || location.href, location.href).searchParams;
+  var merchant = script.getAttribute('data-merchant') || srcParams.get('merchant');
+  if (!merchant) return;
+  var base = script.getAttribute('data-base') || srcParams.get('base') || new URL(script.src, location.href).origin;
   var api = base + '/m/' + encodeURIComponent(merchant) + '/agent';
   var CART_KEY = 'lintel_cart_' + merchant;
 

@@ -41,10 +41,13 @@ function Stores() {
     <>
       <div className="flex flex-col gap-4 pt-10 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="t-h2">{user ? `Welcome, ${user.name.split(' ')[0]}` : 'Your stores'}</h1>
+          <h1 className="t-h2">{user ? `Welcome, ${firstName(user.name)}` : 'Your stores'}</h1>
           <p className="mt-1 text-muted">Open your stores to AI shopping agents and get paid through PayPal.</p>
         </div>
-        <ButtonLink href="/app/stores/new">Add a store</ButtonLink>
+        <div className="flex gap-2">
+          {user?.role === 'admin' && <ButtonLink href="/admin" variant="secondary">Admin console</ButtonLink>}
+          <ButtonLink href="/app/stores/new">Add a store</ButtonLink>
+        </div>
       </div>
       {error && <p className="mt-8 text-danger">{error}</p>}
       {!stores && !error && <p className="mt-10 flex items-center gap-2 text-muted"><Spinner /> Loading your stores</p>}
@@ -73,7 +76,7 @@ function Stores() {
 
       {own.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-[15px] font-semibold">{user?.role === 'admin' ? 'All stores' : 'Your stores'}</h2>
+          <h2 className="text-[15px] font-semibold">Your stores</h2>
           <div className="mt-3 grid gap-4 md:grid-cols-2">{own.map((s) => <StoreTile key={s.id} s={s} />)}</div>
         </section>
       )}
@@ -87,6 +90,11 @@ function Stores() {
       )}
     </>
   );
+}
+
+/** "Maya Okafor" -> "Maya"; "maya@shop.com" -> "maya". */
+function firstName(name: string) {
+  return name.split('@')[0].split(/[\s._-]+/)[0] || name;
 }
 
 function StoreTile({ s }: { s: StoreCard }) {

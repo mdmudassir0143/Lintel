@@ -1,5 +1,6 @@
 import { requireStore } from '@/lib/server/session';
 import { verifyInstall } from '@/lib/stores';
+import { startScan } from '@/lib/scan/runScan';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,5 +9,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const g = await requireStore(id, req);
   if (g instanceof Response) return g;
-  return Response.json(await verifyInstall(id));
+  const result = await verifyInstall(id);
+  // Once the snippet is live, rescan so the score reflects it.
+  const scanId = result.ok ? startScan(g.store.store_url, { merchantId: id, userId: g.user.id }) : undefined;
+  return Response.json({ ...result, scanId });
 }

@@ -58,15 +58,22 @@ export function createStore(owner: User, input: { name: string; url: string; pay
   return getStore(id)!;
 }
 
+export const PLATFORMS: Platform[] = ['shopify', 'woocommerce', 'wix', 'squarespace', 'bigcommerce', 'webflow', 'other'];
+
+export function setStorePlatform(id: string, platform: string): void {
+  if (!PLATFORMS.includes(platform as Platform)) throw new StoreError('Choose a platform.');
+  getDb().prepare('update merchants set platform = ? where id = ?').run(platform, id);
+}
+
 export function updateStorePaypal(id: string, paypalEmail: string): void {
   const email = paypalEmail.trim().toLowerCase();
   if (!EMAIL.test(email)) throw new StoreError('Enter the email of your PayPal business account.');
   getDb().prepare('update merchants set paypal_email = ?, paypal_verified_at = null where id = ?').run(email, id);
 }
 
+/** A user's own stores plus the shared demo. Admins see everyone's stores in the admin console, not here. */
 export function listStoresFor(user: User): MerchantRow[] {
   const db = getDb();
-  if (user.role === 'admin') return db.prepare('select * from merchants order by created_at desc').all() as MerchantRow[];
   return db.prepare('select * from merchants where owner_id = ? or owner_id is null order by owner_id is null, created_at desc').all(user.id) as MerchantRow[];
 }
 
@@ -116,30 +123,68 @@ function csvRows(text: string): string[][] {
   return rows;
 }
 
-/** CSV with a header row: sku, title, price required; description and in_stock optional. */
+const COLS = {
+  sku: ['sku', 'id', 'variant_sku', 'product_code_sku', 'product_sku', 'sku_code'],
+  title: ['title', 'name', 'product_name', 'product_title'],
+  price: ['price', 'variant_price', 'regular_price', 'sale_price'],
+  description: ['description', 'desc', 'body_html', 'short_description', 'product_description'],
+  stock: ['in_stock', 'instock', 'stock', 'available', 'inventory', 'variant_inventory_qty', 'current_stock_level', 'stock_quantity'],
+  handle: ['handle', 'handleid'],
+};
+
+function inStockFrom(raw: string | undefined): boolean {
+  const v = (raw ?? '').trim().toLowerCase().replace(/[\s_-]+/g, '');
+  if (v === '') return true;
+  if (['no', 'false', 'out', 'outofstock', 'soldout'].includes(v)) return false;
+  if (/^-?\d+(\.\d+)?$/.test(v)) return Number(v) > 0;
+  return true; // yes, true, instock, unlimited, ...
+}
+
+/**
+ * CSV with a header row. Accepts our template (sku, title, description, price, in_stock) and the
+ * product exports of Shopify, WooCommerce, Wix, Squarespace and BigCommerce as they come.
+ */
 export function parseCatalogCsv(text: string): Product[] {
   const rows = csvRows(text.trim());
   if (rows.length < 2) throw new StoreError('Add a header row and at least one product.');
-  const head = rows[0].map((h) => h.trim().toLowerCase().replace(/\s+/g, '_'));
-  const col = (...names: string[]) => head.findIndex((h) => names.includes(h));
-  const iSku = col('sku', 'id'), iTitle = col('title', 'name'), iPrice = col('price');
-  const iDesc = col('description', 'desc'), iStock = col('in_stock', 'instock', 'stock', 'available');
-  for (const [i, n] of [[iSku, 'sku'], [iTitle, 'title'], [iPrice, 'price']] as const) {
-    if (i < 0) throw new StoreError(`The CSV needs a "${n}" column.`);
-  }
+  const head = rows[0].map((h) => h.trim().toLowerCase().replace(/\[.*?\]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''));
+  const col = (names: string[]) => { for (const n of names) { const i = head.indexOf(n); if (i >= 0) return i; } return -1; };
+  const iSku = col(COLS.sku), iTitle = col(COLS.title), iPrice = col(COLS.price);
+  const iDesc = col(COLS.description), iStock = col(COLS.stock), iHandle = col(COLS.handle);
+  const iSale = head.indexOf('sale_price');
+  if (iTitle < 0 && iHandle < 0) throw new StoreError('The CSV needs a "title" (or "name") column.');
+  if (iPrice < 0) throw new StoreError('The CSV needs a "price" column.');
+  if (iSku < 0 && iHandle < 0) throw new StoreError('The CSV needs a "sku" column.');
   const seen = new Set<string>();
-  return rows.slice(1).slice(0, 2000).map((r, k) => {
+  const byHandle = new Map<string, { title: string; description: string; n: number }>();
+  const out: Product[] = [];
+  rows.slice(1).slice(0, 5000).forEach((r, k) => {
     const line = k + 2;
-    const sku = (r[iSku] ?? '').trim();
-    const title = (r[iTitle] ?? '').trim();
-    const price = money(r[iPrice]);
-    if (!sku || !title) throw new StoreError(`Line ${line}: sku and title are required.`);
-    if (price === null) throw new StoreError(`Line ${line}: "${r[iPrice] ?? ''}" is not a price.`);
+    const handle = iHandle >= 0 ? (r[iHandle] ?? '').trim() : '';
+    const parent = handle ? byHandle.get(handle) : undefined;
+    let title = iTitle >= 0 ? (r[iTitle] ?? '').trim() : '';
+    let description = iDesc >= 0 ? stripHtml(r[iDesc] ?? '') : '';
+    if (!title && parent) { title = parent.title; description = description || parent.description; }
+    let priceRaw = r[iPrice] ?? '';
+    if (!String(priceRaw).trim() && iSale >= 0) priceRaw = r[iSale] ?? '';
+    if (!title && !String(priceRaw).trim()) return; // option/image-only rows in platform exports
+    const price = money(priceRaw);
+    if (!title) throw new StoreError(`Line ${line}: a title is required.`);
+    if (price === null) throw new StoreError(`Line ${line}: "${priceRaw}" is not a price.`);
+    if (handle) {
+      const h = parent ?? { title, description, n: 0 };
+      h.n++;
+      byHandle.set(handle, h);
+    }
+    let sku = iSku >= 0 ? (r[iSku] ?? '').trim() : '';
+    if (!sku) sku = handle ? `${handle}-${byHandle.get(handle)!.n}` : '';
+    if (!sku) throw new StoreError(`Line ${line}: a sku is required.`);
     if (seen.has(sku)) throw new StoreError(`Line ${line}: sku ${sku} appears twice.`);
     seen.add(sku);
-    const stock = iStock < 0 ? 'yes' : (r[iStock] ?? '').trim().toLowerCase();
-    return product(sku, title.slice(0, 200), (iDesc < 0 ? '' : r[iDesc] ?? '').trim().slice(0, 1000), price, !['no', 'false', '0', 'out', 'out of stock'].includes(stock));
+    out.push(product(sku, title.slice(0, 200), description.slice(0, 1000), price, inStockFrom(iStock >= 0 ? r[iStock] : undefined)));
   });
+  if (!out.length) throw new StoreError('No products found in the CSV.');
+  return out.slice(0, 2000);
 }
 
 type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
@@ -163,6 +208,63 @@ export async function importShopifyCatalog(storeUrl: string, fetchImpl: FetchLik
     }
   }
   return out.slice(0, 2000);
+}
+
+export type Platform = 'shopify' | 'woocommerce' | 'wix' | 'squarespace' | 'bigcommerce' | 'webflow' | 'other';
+
+/** Which store builder made this page, from tell-tale asset hosts and markup. */
+export function detectPlatform(html: string): Platform {
+  if (/cdn\.shopify\.com|Shopify\.theme|myshopify\.com/i.test(html)) return 'shopify';
+  if (/wp-content\/plugins\/woocommerce|woocommerce/i.test(html)) return 'woocommerce';
+  if (/static\.wixstatic\.com|wix\.com\/|_wixCIDX|wix-bolt/i.test(html)) return 'wix';
+  if (/static1\.squarespace\.com|squarespace-cdn|Static\.SQUARESPACE_CONTEXT/i.test(html)) return 'squarespace';
+  if (/cdn\d*\.bigcommerce\.com|bigcommerce/i.test(html)) return 'bigcommerce';
+  if (/data-wf-site|webflow\.js|assets\.website-files\.com/i.test(html)) return 'webflow';
+  return 'other';
+}
+
+const decodeEntities = (t: string) => t.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+
+/** WooCommerce stores publish products through the public Store API. */
+export async function importWooCommerceCatalog(storeUrl: string, fetchImpl: FetchLike = defaultFetch): Promise<Product[]> {
+  const origin = new URL(normalizeStoreUrl(storeUrl)).origin;
+  const r = await fetchImpl(`${origin}/wp-json/wc/store/v1/products?per_page=100`, { headers: { accept: 'application/json' } });
+  if (!r.ok) throw new StoreError('We couldn’t read your WooCommerce products. Export a CSV instead.');
+  const items = (await r.json().catch(() => null)) as any[] | null;
+  if (!Array.isArray(items) || !items.length) throw new StoreError('No WooCommerce products found.');
+  return items.flatMap((p) => {
+    const minor = Number(p.prices?.currency_minor_unit ?? 2);
+    const cents = Number(p.prices?.price);
+    if (!Number.isFinite(cents)) return [];
+    const price = (cents / 10 ** minor).toFixed(2);
+    return [product(String(p.sku || `woo-${p.id}`), decodeEntities(stripHtml(String(p.name ?? ''))).slice(0, 200), decodeEntities(stripHtml(String(p.short_description || p.description || ''))).slice(0, 1000), price, p.is_in_stock !== false)];
+  }).slice(0, 2000);
+}
+
+/** Any store: follow sitemap.xml to product pages and read their schema.org product data. */
+export async function crawlSitemapCatalog(storeUrl: string, fetchImpl: FetchLike = defaultFetch, maxPages = 40): Promise<Product[]> {
+  const origin = new URL(normalizeStoreUrl(storeUrl)).origin;
+  const locs = (xml: string) => [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/gi)].map((m) => decodeEntities(m[1]));
+  const text = async (u: string) => { try { const r = await fetchImpl(u); return r.ok ? await r.text() : ''; } catch { return ''; } };
+  const root = await text(`${origin}/sitemap.xml`);
+  if (!root) throw new StoreError('Your store has no sitemap.xml we can read. Upload a CSV instead.');
+  let pages: string[] = [];
+  if (/<sitemapindex/i.test(root)) {
+    const subs = locs(root);
+    const productSubs = subs.filter((u) => /product/i.test(u));
+    for (const sm of (productSubs.length ? productSubs : subs).slice(0, 4)) pages.push(...locs(await text(sm)));
+  } else pages = locs(root);
+  const productPages = [...new Set(pages.filter((u) => /\/products?\/|\/shop\/|\/item\//i.test(new URL(u, origin).pathname)))].slice(0, maxPages);
+  if (!productPages.length) throw new StoreError('We didn’t find product pages in your sitemap. Upload a CSV instead.');
+  const out: Product[] = [];
+  const seen = new Set<string>();
+  for (const u of productPages) {
+    for (const p of importJsonLdCatalog(await text(u))) {
+      if (!seen.has(p.sku)) { seen.add(p.sku); out.push(p); }
+    }
+  }
+  if (!out.length) throw new StoreError('Your product pages don’t have product data we can read. Upload a CSV instead.');
+  return out;
 }
 
 /** schema.org Product data already on a page. */
@@ -244,7 +346,7 @@ export interface StoreSummary {
   id: string; name: string; storeUrl: string; isDemo: boolean; installed: boolean; ownerId: string | null;
   paypalEmail: string | null; paypalVerified: boolean; installVerified: boolean; productCount: number;
   latestScore: number | null; latestScanId: string | null; orders: number; revenue: string; createdAt: number | null;
-  setup: SetupStep[];
+  setup: SetupStep[]; platform: Platform | null; shopifyConnected: boolean;
 }
 
 export function storeSummary(s: MerchantRow): StoreSummary {
@@ -256,6 +358,6 @@ export function storeSummary(s: MerchantRow): StoreSummary {
     paypalEmail: s.paypal_email, paypalVerified: s.paypal_verified_at != null, installVerified: s.install_verified_at != null,
     productCount: (JSON.parse(s.raw_catalog || '[]') as unknown[]).length,
     latestScore: scan?.score ?? null, latestScanId: scan?.id ?? null, orders: o.n, revenue: o.total.toFixed(2), createdAt: s.created_at,
-    setup: setupProgress(s),
+    setup: setupProgress(s), platform: (s.platform as Platform | null) ?? null, shopifyConnected: !!s.shopify_token,
   };
 }

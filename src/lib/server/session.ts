@@ -70,3 +70,28 @@ export async function requireRunAccess(runId: string): Promise<User | Response> 
   const ok = u.role === 'admin' || run.user_id === u.id || (store ? canAccessStore(u, store) : false);
   return ok ? u : deny(404, 'Run not found.');
 }
+
+const OAUTH_COOKIE = 'lintel_oauth';
+
+/** Short-lived state for an OAuth round trip (state, PKCE verifier, where to go next). */
+export async function setOAuthState(value: Record<string, string | undefined>): Promise<void> {
+  (await cookies()).set(OAUTH_COOKIE, JSON.stringify(value), {
+    httpOnly: true, sameSite: 'lax', secure: env.publicBaseUrl.startsWith('https://'), path: '/api/auth', maxAge: 600,
+  });
+}
+
+export async function takeOAuthState(): Promise<Record<string, string | undefined> | null> {
+  const jar = await cookies();
+  const raw = jar.get(OAUTH_COOKIE)?.value;
+  jar.delete({ name: OAUTH_COOKIE, path: '/api/auth' });
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Only same-site paths are allowed as post-login destinations. */
+export function safeNext(next: string | null | undefined, fallback = '/app'): string {
+  return next && next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\') ? next : fallback;
+}

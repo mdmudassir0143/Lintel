@@ -1,11 +1,11 @@
 import { requireStore } from '@/lib/server/session';
-import { importShopifyCatalog, importJsonLdCatalog, parseCatalogCsv, setCatalog, getStore, StoreError } from '@/lib/stores';
+import { importShopifyCatalog, importJsonLdCatalog, importWooCommerceCatalog, crawlSitemapCatalog, parseCatalogCsv, setCatalog, getStore, StoreError } from '@/lib/stores';
 import { guardedFetch, UnsafeUrlError } from '@/lib/net';
 import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 
-/** Imports products: { source: 'shopify' } | { source: 'page' } | { source: 'csv', csv }. */
+/** Imports products: { source: 'shopify' | 'woocommerce' | 'sitemap' | 'page' } | { source: 'csv', csv }. */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const g = await requireStore(id, req);
@@ -15,6 +15,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     let products;
     if (b.source === 'shopify') products = await importShopifyCatalog(g.store.store_url);
+    else if (b.source === 'woocommerce') products = await importWooCommerceCatalog(g.store.store_url);
+    else if (b.source === 'sitemap') products = await crawlSitemapCatalog(g.store.store_url);
     else if (b.source === 'page') {
       const r = await guardedFetch(g.store.store_url, {}, { allowHosts: [new URL(env.publicBaseUrl).host] });
       products = importJsonLdCatalog(await r.text());

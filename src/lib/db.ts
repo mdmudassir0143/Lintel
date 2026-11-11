@@ -1,4 +1,6 @@
 import Database from 'better-sqlite3';
+import fs from 'node:fs';
+import path from 'node:path';
 import { env } from './env';
 import { RIDGELINE_RAW_CATALOG } from './ridgelineData';
 
@@ -51,6 +53,11 @@ const MIGRATIONS: [table: string, column: string, ddl: string][] = [
   ['merchants', 'paypal_verified_at', 'alter table merchants add column paypal_verified_at integer'],
   ['scans', 'user_id', 'alter table scans add column user_id text'],
   ['runs', 'user_id', 'alter table runs add column user_id text'],
+  ['merchants', 'platform', 'alter table merchants add column platform text'],
+  ['merchants', 'shopify_shop', 'alter table merchants add column shopify_shop text'],
+  ['merchants', 'shopify_token', 'alter table merchants add column shopify_token text'],
+  ['users', 'google_sub', 'alter table users add column google_sub text'],
+  ['users', 'avatar_url', 'alter table users add column avatar_url text'],
 ];
 
 function migrate(db: Database.Database) {
@@ -67,12 +74,17 @@ function seed(db: Database.Database) {
   db.prepare(
     `insert or ignore into merchants (id, name, store_url, installed, raw_catalog) values (?, ?, ?, 0, ?)`,
   ).run('ridgeline', 'Ridgeline Coffee Roasters', `${env.publicBaseUrl}/store/ridgeline`, JSON.stringify(RIDGELINE_RAW_CATALOG));
+  // The demo store lives on this deployment, so follow its address if the domain changes.
+  db.prepare(`update merchants set store_url = ? where id = 'ridgeline'`).run(`${env.publicBaseUrl}/store/ridgeline`);
 }
 
 export function getDb(): Database.Database {
   if (!instance) {
+    if (env.dbPath !== ':memory:') fs.mkdirSync(path.dirname(path.resolve(env.dbPath)), { recursive: true });
     instance = new Database(env.dbPath);
     instance.pragma('journal_mode = WAL');
+    instance.pragma('busy_timeout = 5000'); // wait instead of failing when a write is in progress
+    instance.pragma('synchronous = NORMAL'); // safe with WAL, much faster commits
     instance.exec(SCHEMA);
     migrate(instance);
     seed(instance);

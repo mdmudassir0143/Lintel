@@ -25,10 +25,12 @@ export function ChatDemo() {
       const q = gsap.utils.selector(root);
       gsap.matchMedia().add('(prefers-reduced-motion: no-preference)', () => {
         const tl = gsap.timeline({ scrollTrigger: { trigger: root.current, start: 'top 75%', once: true }, defaults: { ease: 'power3.out' } });
-        tl.from(q('[data-user]'), { y: 16, opacity: 0, duration: 0.5 })
-          .from(q('[data-thinking]'), { opacity: 0, duration: 0.3 }, '+=0.2')
-          .to(q('[data-thinking]'), { opacity: 0, height: 0, marginTop: 0, duration: 0.3 }, '+=1.1')
-          .from(q('[data-searched]'), { opacity: 0, y: 6, duration: 0.4 })
+        tl.set(q('[data-thinking]'), { autoAlpha: 1 })
+          .set(q('[data-searched]'), { autoAlpha: 0 })
+          .from(q('[data-user]'), { y: 16, opacity: 0, duration: 0.5 })
+          .from(q('[data-thinking]'), { autoAlpha: 0, duration: 0.3 }, '+=0.2')
+          .to(q('[data-thinking]'), { autoAlpha: 0, duration: 0.25 }, '+=1.1')
+          .to(q('[data-searched]'), { autoAlpha: 1, duration: 0.3 })
           .from(q('[data-card]'), { opacity: 0, y: 14, scale: 0.96, duration: 0.5, stagger: 0.18 }, '+=0.1')
           .from(q('[data-verdict]'), { scale: 0, duration: 0.35, ease: 'back.out(2.5)', stagger: 0.18 }, '<0.25')
           .from(q('[data-word]'), { opacity: 0, duration: 0.05, stagger: 0.045 }, '+=0.2')
@@ -51,11 +53,13 @@ export function ChatDemo() {
         <div className="flex gap-3">
           <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full border border-line text-ink"><Sparkle className="h-3.5 w-3.5" /></span>
           <div className="min-w-0 flex-1 text-[15px] leading-relaxed text-ink">
-            <p data-thinking className="shimmer w-fit font-medium">Shopping three stores…</p>
-            <p data-searched className="flex w-fit items-center gap-1.5 text-[13.5px] text-muted">
-              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-              Visited 3 stores
-            </p>
+            <div className="grid">
+              <p data-thinking className="shimmer invisible w-fit font-medium [grid-area:1/1]">Shopping three stores…</p>
+              <p data-searched className="flex w-fit items-center gap-1.5 text-[13.5px] text-muted [grid-area:1/1]">
+                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+                Visited 3 stores
+              </p>
+            </div>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">
               {STORES.map((s) => (
                 <div key={s.name} data-card className={`rounded-2xl border p-3 ${s.ok ? 'border-success/25 bg-success-wash/60' : 'border-line bg-white'}`}>
