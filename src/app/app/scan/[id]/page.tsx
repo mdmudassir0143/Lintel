@@ -154,8 +154,8 @@ export default function ScanPage({ params }: { params: Promise<{ id: string }> }
       </div>
 
       <Panel className="mt-6">
-        <PanelHeader title="All nine checks" sub="Each stone in the beam is one check, as wide as its points." />
-        <div className="px-5 pt-5"><Beam checks={scan.checks} className="h-5" animate={false} /></div>
+        <PanelHeader title="All nine checks" sub="Each segment is one check, as wide as its points." />
+        <div className="px-5 pt-5"><Beam checks={scan.checks} className="h-2.5" animate={false} /></div>
         <ul className="mt-3 divide-y divide-line">
           {sorted.map((c) => {
             const earned = c.earned ?? Math.round(c.weight * { pass: 1, partial: 0.5, fail: 0 }[c.status]);

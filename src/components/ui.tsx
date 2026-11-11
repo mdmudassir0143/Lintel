@@ -1,13 +1,14 @@
 import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 
-type Variant = 'primary' | 'dark' | 'secondary' | 'ghost' | 'paypal';
+type Variant = 'primary' | 'dark' | 'secondary' | 'ghost' | 'paypal' | 'light';
 const VARIANT: Record<Variant, string> = {
-  primary: 'bg-brand text-white hover:bg-brand-hover',
+  primary: 'bg-brand text-white shadow-[0_1px_0_0_rgb(255_255_255/.2)_inset,0_6px_16px_-6px_rgb(45_45_241/.55)] hover:bg-brand-hover',
   dark: 'bg-night text-white hover:bg-night-raised',
   secondary: 'border border-line-strong bg-surface text-ink hover:border-ink/40',
   ghost: 'text-ink hover:bg-ink/5',
   paypal: 'bg-paypal text-paypal-ink hover:brightness-95',
+  light: 'bg-white text-ink hover:bg-white/90',
 };
 const SIZE = { sm: 'h-8 px-3 text-sm', md: 'h-10 px-4 text-[15px]', lg: 'h-12 px-6 text-base' } as const;
 

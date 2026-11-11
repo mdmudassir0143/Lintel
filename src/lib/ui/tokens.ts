@@ -31,19 +31,20 @@ export const ROLE_GROUPS: { title: string; note: string; roles: Role[] }[] = [
     title: 'Brand',
     note: 'Electric blue marks what you can act on, and every stone that holds the door open.',
     roles: [
-      { name: 'brand', usage: 'Primary buttons, links, passing stones, good scores' },
+      { name: 'brand', usage: 'Primary buttons, links, passing checks in the beam' },
       { name: 'brand-hover', usage: 'Hover and pressed state of brand' },
       { name: 'brand-ink', usage: 'Brand text on brand-wash' },
       { name: 'brand-wash', usage: 'Highlighted and live states' },
       { name: 'brand-soft', usage: 'Selected rows, soft fills' },
       { name: 'brand-bright', usage: 'Brand on night backgrounds', onDark: true },
+      { name: 'brand-2', usage: 'Violet end of brand gradients and glows, never alone' },
     ],
   },
   {
     title: 'Night',
-    note: 'Deep navy for the payments story, code, and the doorway posts.',
+    note: 'Deep navy with a blue glow for the payments story, code and the closing call to action.',
     roles: [
-      { name: 'night', usage: 'Dark sections, code blocks, doorway posts', onDark: true },
+      { name: 'night', usage: 'Dark sections, code blocks, final call to action', onDark: true },
       { name: 'night-raised', usage: 'Panels on night', onDark: true },
       { name: 'night-line', usage: 'Borders on night', onDark: true },
       { name: 'accent', usage: 'Highlights on night, such as the scheme name', onDark: true },

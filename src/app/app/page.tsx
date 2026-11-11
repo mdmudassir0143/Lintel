@@ -35,7 +35,7 @@ export default function Overview() {
           <h1 className="t-h2">Overview</h1>
           <p className="mt-1 text-muted">Scan any store, or manage the stores you’ve opened to AI agents.</p>
         </div>
-        <div className="lg:w-[520px]"><ScanForm size="md" showDemo={false} /></div>
+        <div className="lg:w-[520px]"><ScanForm size="md" /></div>
       </div>
 
       {failed && <p className="mt-8 text-danger">Couldn’t load your stores. Refresh to try again.</p>}

@@ -4,18 +4,18 @@ import { ButtonLink } from './ui';
 
 export function SiteNav() {
   return (
-    <header className="sticky top-0 z-30 border-b border-line/70 bg-canvas/85 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-line/60 bg-canvas/75 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-5 md:px-8">
         <Wordmark />
-        <nav className="hidden items-center gap-7 text-[15px] text-ink/75 md:flex">
-          <Link href="/#how" className="hover:text-ink">How it works</Link>
+        <nav className="hidden items-center gap-8 text-[15px] text-soft md:flex">
+          <Link href="/#product" className="hover:text-ink">Product</Link>
           <Link href="/#payments" className="hover:text-ink">Payments</Link>
-          <Link href="/docs" className="hover:text-ink">Developers</Link>
+          <Link href="/docs" className="hover:text-ink">Docs</Link>
           <Link href="/#faq" className="hover:text-ink">FAQ</Link>
         </nav>
         <div className="flex items-center gap-2">
-          <ButtonLink href="/docs" variant="ghost" size="sm" className="md:hidden">Docs</ButtonLink>
-          <ButtonLink href="/app" variant="dark" size="sm">Launch app</ButtonLink>
+          <ButtonLink href="/app" variant="ghost" size="sm">Open app</ButtonLink>
+          <ButtonLink href="/#scan" variant="primary" size="sm" className="hidden sm:inline-flex">Scan your store</ButtonLink>
         </div>
       </div>
     </header>

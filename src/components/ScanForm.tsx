@@ -1,70 +1,75 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Spinner } from './ui';
+import { Button, Spinner, buttonClass } from './ui';
 
-/** Store-address form that starts a scan and opens its result in the app. */
-export function ScanForm({ size = 'lg', showDemo = true, tone = 'light' }: { size?: 'md' | 'lg'; showDemo?: boolean; tone?: 'light' | 'dark' }) {
+async function startScan(url: string): Promise<string> {
+  const r = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url }) });
+  const b = await r.json();
+  if (!r.ok) throw new Error(b.error ?? 'Could not start the scan.');
+  return b.scanId;
+}
+
+/** Store-address form that starts a scan and opens its report in the app. */
+export function ScanForm({ size = 'lg', tone = 'light', align = 'start' }: { size?: 'md' | 'lg'; tone?: 'light' | 'dark'; align?: 'start' | 'center' }) {
   const router = useRouter();
   const [url, setUrl] = useState('');
-  const [busy, setBusy] = useState<'' | 'mine' | 'demo'>('');
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  async function scan(target: string, which: 'mine' | 'demo') {
-    setBusy(which);
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const v = url.trim();
+    if (!v) return setError('Enter your store’s address, like yourstore.com');
+    setBusy(true);
     setError('');
     try {
-      const r = await fetch('/api/scan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ url: target }) });
-      const b = await r.json();
-      if (!r.ok) throw new Error(b.error ?? 'Could not start the scan.');
-      router.push(`/app/scan/${b.scanId}`);
-    } catch (e) {
-      setBusy('');
-      setError(e instanceof Error ? e.message : 'Could not start the scan.');
+      router.push(`/app/scan/${await startScan(/^https?:\/\//i.test(v) ? v : `https://${v}`)}`);
+    } catch (err) {
+      setBusy(false);
+      setError(err instanceof Error ? err.message : 'Could not start the scan.');
     }
   }
 
   const h = size === 'lg' ? 'h-12' : 'h-10';
   return (
-    <div>
-      <form
-        className="flex max-w-[520px] flex-col gap-2 sm:flex-row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const v = url.trim();
-          if (!v) return setError('Enter your store’s address, like yourstore.com');
-          scan(/^https?:\/\//i.test(v) ? v : `https://${v}`, 'mine');
-        }}
-      >
-        <label className="sr-only" htmlFor="store-url">Your store’s address</label>
+    <div className={`w-full max-w-[520px] ${align === 'center' ? 'mx-auto' : ''}`}>
+      <form onSubmit={submit} className={`flex flex-col gap-2 rounded-xl p-1.5 sm:flex-row ${tone === 'dark' ? 'bg-white/10 ring-1 ring-white/15' : 'bg-surface shadow-[var(--shadow-card)]'}`}>
+        <label className="sr-only" htmlFor={`store-url-${tone}`}>Your store’s address</label>
         <input
-          id="store-url"
+          id={`store-url-${tone}`}
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="yourstore.com"
           autoComplete="url"
           inputMode="url"
-          className={`${h} w-full min-w-0 rounded-lg sm:flex-1 border border-line-strong bg-surface px-4 text-base text-ink outline-none placeholder:text-muted/70 focus:border-brand focus:ring-4 focus:ring-brand/10`}
+          className={`${h} w-full min-w-0 rounded-lg bg-transparent px-3.5 text-base outline-none sm:flex-1 ${tone === 'dark' ? 'text-white placeholder:text-white/50' : 'text-ink placeholder:text-muted/70'}`}
         />
-        <Button type="submit" size={size} variant={tone === 'dark' ? 'dark' : 'primary'} disabled={!!busy}>
-          {busy === 'mine' && <Spinner />}
-          {busy === 'mine' ? 'Scanning' : 'Scan my store'}
+        <Button type="submit" size={size} variant={tone === 'dark' ? 'light' : 'primary'} disabled={busy}>
+          {busy && <Spinner />} {busy ? 'Scanning' : 'Scan my store'}
         </Button>
       </form>
-      {error && <p role="alert" className="mt-2 text-sm text-danger">{error}</p>}
-      {showDemo && (
-        <p className={`mt-3 text-sm ${tone === 'dark' ? 'text-white/60' : 'text-muted'}`}>
-          Free, no signup. No store handy?{' '}
-          <button
-            type="button"
-            disabled={!!busy}
-            onClick={() => scan(`${window.location.origin}/store/ridgeline`, 'demo')}
-            className={`font-medium underline decoration-1 underline-offset-4 ${tone === 'dark' ? 'text-white hover:text-white/80' : 'text-ink hover:text-brand'}`}
-          >
-            {busy === 'demo' ? 'Scanning the demo shop…' : 'Scan our demo coffee shop'}
-          </button>
-        </p>
-      )}
+      {error && <p role="alert" className={`mt-2 text-sm ${tone === 'dark' ? 'text-white' : 'text-danger'} ${align === 'center' ? 'text-center' : ''}`}>{error}</p>}
     </div>
+  );
+}
+
+/** Runs a scan of the hosted demo store. */
+export function DemoButton({ label = 'Try it on a demo store', variant = 'secondary', size = 'lg' }: { label?: string; variant?: 'secondary' | 'ghost' | 'onDark' | 'link'; size?: 'md' | 'lg' }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const cls = variant === 'link' ? 'inline-flex items-center gap-2 text-[15px] font-medium text-soft underline decoration-line-strong underline-offset-[6px] hover:text-brand hover:decoration-brand disabled:opacity-60' : variant === 'onDark' ? buttonClass('ghost', size, 'text-white hover:bg-white/10') : buttonClass(variant, size);
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      className={cls}
+      onClick={async () => {
+        setBusy(true);
+        try { router.push(`/app/scan/${await startScan(`${window.location.origin}/store/ridgeline`)}`); } catch { setBusy(false); }
+      }}
+    >
+      {busy && <Spinner />} {busy ? 'Scanning the demo store' : label}
+    </button>
   );
 }

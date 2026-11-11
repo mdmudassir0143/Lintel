@@ -17,6 +17,8 @@
   --p-blue-500: #2d2df1;
   --p-blue-600: #2222d4;
   --p-blue-700: #1a1aa8;
+  /* Violet: only as the far end of brand gradients and glows. */
+  --p-violet-500: #7b61ff;
   /* Navy: ink and night. */
   --p-navy-950: #001324;
   --p-navy-900: #071e33;
@@ -63,6 +65,7 @@
   --color-brand-wash: var(--p-blue-50);      /* selected and highlighted backgrounds */
   --color-brand-soft: var(--p-blue-100);
   --color-brand-bright: var(--p-blue-300);   /* brand on night backgrounds */
+  --color-brand-2: var(--p-violet-500);      /* gradient partner of brand, never alone */
   /* Night: dark sections, code blocks, the doorway posts */
   --color-night: var(--p-navy-950);
   --color-night-raised: var(--p-navy-800);
@@ -80,6 +83,9 @@
   --color-paypal: var(--p-paypal-gold);
   --color-paypal-ink: var(--p-paypal-navy);
 
+  --shadow-window: 0 1px 0 0 rgb(255 255 255 / .6) inset, 0 0 0 1px rgb(0 19 36 / .06), 0 24px 60px -24px rgb(0 19 36 / .28), 0 8px 20px -12px rgb(45 45 241 / .18);
+  --shadow-card: 0 0 0 1px rgb(0 19 36 / .06), 0 2px 6px -2px rgb(0 19 36 / .06);
+
   --font-sans: var(--font-host), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', Menlo, monospace;
 }
@@ -90,7 +96,7 @@ body { background: var(--color-canvas); color: var(--color-ink); }
 /* Type scale. Headlines are Host Grotesk 600 with tight tracking; sizes are fluid,
    so one class works from phone to desktop. Body sizes use Tailwind's text-* utilities. */
 .headline { font-weight: 600; letter-spacing: -0.035em; }
-.t-display { font-weight: 600; letter-spacing: -0.04em; font-size: clamp(2.75rem, 1.55rem + 3.7vw, 4.5rem); line-height: 1.02; }
+.t-display { font-weight: 600; letter-spacing: -0.04em; font-size: clamp(2.6rem, 1.5rem + 3.4vw, 4.25rem); line-height: 1.03; }
 .t-h1 { font-weight: 600; letter-spacing: -0.035em; font-size: clamp(2rem, 1.55rem + 1.5vw, 2.75rem); line-height: 1.08; }
 .t-h2 { font-weight: 600; letter-spacing: -0.03em; font-size: clamp(1.625rem, 1.4rem + 0.8vw, 2.125rem); line-height: 1.15; }
 .t-h3 { font-weight: 600; letter-spacing: -0.02em; font-size: 1.375rem; line-height: 1.25; }
@@ -99,6 +105,22 @@ body { background: var(--color-canvas); color: var(--color-ink); }
 .num { font-variant-numeric: tabular-nums; }
 :focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; border-radius: 4px; }
 ::selection { background: var(--color-brand); color: white; }
+
+/* Brand atmosphere: soft blue, violet and teal light behind the hero and CTA. */
+.aurora {
+  background:
+    radial-gradient(55% 60% at 50% -5%, rgb(45 45 241 / .16), transparent 70%),
+    radial-gradient(35% 45% at 88% 8%, rgb(23 202 198 / .16), transparent 70%),
+    radial-gradient(35% 45% at 8% 14%, rgb(123 97 255 / .14), transparent 70%);
+}
+.grid-fade {
+  background-image: linear-gradient(rgb(0 19 36 / .045) 1px, transparent 1px), linear-gradient(90deg, rgb(0 19 36 / .045) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(70% 60% at 50% 0%, black, transparent 75%);
+}
+.brand-gradient { background-image: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-2) 100%); }
+.text-gradient { background-image: linear-gradient(90deg, var(--color-brand) 0%, var(--color-brand-2) 60%, var(--p-teal-400) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.night-glow { background: radial-gradient(50% 60% at 80% 0%, rgb(45 45 241 / .35), transparent 70%), radial-gradient(40% 50% at 0% 100%, rgb(23 202 198 / .12), transparent 70%), var(--color-night); }
 
 /* The one orchestrated moment: stones set into the beam. */
 @keyframes set-stone { from { transform: translateY(-18px); opacity: 0; } to { transform: none; opacity: 1; } }

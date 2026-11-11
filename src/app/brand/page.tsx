@@ -148,7 +148,7 @@ export default function BrandPage() {
               </div>
             </Panel>
             <Panel className="lg:col-span-2">
-              <PanelHeader title="The beam" sub="The signature element. Nine stones, one per check, each as wide as its points. Blue holds; hatched is partial; dashed red is missing." />
+              <PanelHeader title="The beam" sub="Nine segments, one per check, each as wide as its points. Blue passes, light blue is partial, grey is missing. The number stays ink; the pill carries the color." />
               <div className="grid gap-8 p-6 md:grid-cols-3">
                 {[0, 55, 100].map((s) => (
                   <div key={s}>
@@ -167,8 +167,8 @@ export default function BrandPage() {
               ['Roles, not hex', 'Write bg-surface or text-muted. A raw hex in a component is a bug.'],
               ['Blue means act', 'Brand blue is for things you can click and for stones that hold. Don’t use it as decoration.'],
               ['Status has a wash and a tone', 'Use the wash for the background and the tone for text and dots. Pair color with words.'],
-              ['One bold thing per view', 'The beam, a score, or a single dark section. Everything around it stays quiet.'],
-              ['Flat surfaces', 'Panels are white with a 1px line. No drop shadows, no gradients.'],
+              ['One bold thing per view', 'A product shot, a score, or a single dark section. Everything around it stays quiet.'],
+              ['Quiet surfaces, one glow', 'Panels are white with a 1px line. Soft shadows only on product shots; gradients only as background light.'],
               ['Plain words', 'Sentence case. Buttons say what happens: Install Lintel, Approve in PayPal.'],
             ].map(([t, d]) => (
               <li key={t}><p className="font-semibold">{t}</p><p className="mt-1 text-[15px] leading-relaxed text-soft">{d}</p></li>
