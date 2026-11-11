@@ -47,7 +47,7 @@ export function ChatDemo() {
         <span className="h-7 w-7 rounded-full bg-subtle-strong" aria-hidden />
       </div>
       <div className="space-y-5 px-5 pb-4 pt-2 sm:px-7">
-        <div data-user className="ml-auto w-fit max-w-[85%] rounded-3xl bg-[#f2f3f5] px-4 py-2.5 text-[15px] text-ink">
+        <div data-user className="ml-auto w-fit max-w-[85%] rounded-3xl bg-subtle-strong px-4 py-2.5 text-[15px] text-ink">
           Buy me a 12 oz bag of Ethiopian coffee under $25.
         </div>
         <div className="flex gap-3">

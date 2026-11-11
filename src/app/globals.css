@@ -117,3 +117,8 @@ body { background: var(--color-canvas); color: var(--color-ink); }
 
 /* "Thinking" text pulse used in the chat demo. */
 .shimmer { animation: pulse-dot 1.4s ease-in-out infinite; color: var(--color-muted); }
+
+/* Platforms strip: a slow marquee. */
+.marquee-track { animation: marquee 32s linear infinite; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
