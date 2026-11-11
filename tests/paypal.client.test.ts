@@ -76,3 +76,14 @@ describe('PayPal client', () => {
     expect(o.approveUrl).toMatch(/^https:\/\/www\.sandbox\.paypal\.com\//);
   });
 });
+
+describe('PayPal client payee', () => {
+  it('sends the merchant as payee when given', async () => {
+    const { impl, calls } = stubFetch((c) => (c.url.endsWith('/v1/oauth2/token') ? token : { body: order('PAYER_ACTION_REQUIRED') }));
+    const pp = createPayPalClient({ clientId: 'id', clientSecret: 's', fetchImpl: impl });
+    await pp.createOrder({ amount: '1.00', customId: 'n', description: 'x', returnUrl: 'https://r', cancelUrl: 'https://c', payeeEmail: 'pay@shop.test' });
+    expect(JSON.parse(String(calls.at(-1)!.init!.body)).purchase_units[0].payee).toEqual({ email_address: 'pay@shop.test' });
+    await pp.createOrder({ amount: '1.00', customId: 'n2', description: 'x', returnUrl: 'https://r', cancelUrl: 'https://c' });
+    expect(JSON.parse(String(calls.at(-1)!.init!.body)).purchase_units[0].payee).toBeUndefined();
+  });
+});

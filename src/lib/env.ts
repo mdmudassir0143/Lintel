@@ -12,6 +12,8 @@ export interface Env {
   approvalTimeoutMs: number;
   dbPath: string;
   buyerEmail?: string;
+  /** Accounts with these emails get the admin role. */
+  adminEmails: string[];
 }
 
 type Source = Record<string, string | undefined>;
@@ -39,6 +41,7 @@ export function loadEnv(src: Source = process.env): Env {
     approvalTimeoutMs: Number(src.APPROVAL_TIMEOUT_MS) || 900000,
     dbPath: src.DB_PATH || './lintel.db',
     buyerEmail: src.PAYPAL_SANDBOX_BUYER_EMAIL || undefined,
+    adminEmails: list(src.ADMIN_EMAILS).map((e) => e.toLowerCase()),
   };
 }
 

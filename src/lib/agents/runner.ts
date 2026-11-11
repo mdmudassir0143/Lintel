@@ -17,9 +17,9 @@ export async function runAgent(kind: AgentKind, runId: string, url: string, goal
 }
 
 /** Creates a run and executes it in the background; feeds the result into the scan score. */
-export function startRun(r: { kind: AgentKind; url: string; goal?: string; scanId?: string; merchantId?: string }): string {
+export function startRun(r: { kind: AgentKind; url: string; goal?: string; scanId?: string; merchantId?: string; userId?: string }): string {
   const goal = r.goal?.trim() || DEFAULT_GOAL.replace('{url}', r.url);
-  const runId = createRun({ kind: r.kind, goal, scanId: r.scanId, merchantId: r.merchantId });
+  const runId = createRun({ kind: r.kind, goal, scanId: r.scanId, merchantId: r.merchantId, userId: r.userId });
   void runAgent(r.kind, runId, r.url, goal)
     .then((outcome) => {
       if (r.scanId) updateLiveAgentResult(r.scanId, outcome, `${r.kind} agent run`);

@@ -88,7 +88,9 @@ export async function createPaymentRequired(args: {
   description: string;
 }): Promise<PaymentRequired> {
   const nonce = crypto.randomBytes(16).toString('hex');
+  const payee = getDb().prepare('select paypal_email from merchants where id = ?').get(args.merchantId) as { paypal_email: string | null } | undefined;
   const order = await args.paypal.createOrder({
+    payeeEmail: payee?.paypal_email ?? undefined,
     amount: args.amount,
     customId: nonce,
     description: args.description,
@@ -225,6 +227,8 @@ export async function verifyAndSettle(args: {
       args.runId ?? null,
       Date.now(),
     );
+    // A captured payment proves the merchant's PayPal account can receive money.
+    db.prepare('update merchants set paypal_verified_at = coalesce(paypal_verified_at, ?) where id = ?').run(Date.now(), args.merchantId);
     return true;
   });
   if (!settle()) {

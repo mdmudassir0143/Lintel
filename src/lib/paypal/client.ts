@@ -27,6 +27,8 @@ export interface CreateOrderInput {
   description: string;
   returnUrl: string;
   cancelUrl: string;
+  /** Merchant's PayPal account; the payment goes straight to it. */
+  payeeEmail?: string;
 }
 
 export interface PayPalApi {
@@ -123,6 +125,7 @@ export function createPayPalClient(opts: {
               amount: { currency_code: 'USD', value: input.amount },
               custom_id: input.customId,
               description: input.description.slice(0, 127),
+              ...(input.payeeEmail ? { payee: { email_address: input.payeeEmail } } : {}),
             },
           ],
           payment_source: {

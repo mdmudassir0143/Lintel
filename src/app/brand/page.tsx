@@ -168,7 +168,7 @@ export default function BrandPage() {
               ['Blue means act', 'Brand blue is for things you can click and for stones that hold. Don’t use it as decoration.'],
               ['Status has a wash and a tone', 'Use the wash for the background and the tone for text and dots. Pair color with words.'],
               ['One bold thing per view', 'A product shot, a score, or a single dark section. Everything around it stays quiet.'],
-              ['Quiet surfaces, one glow', 'Panels are white with a 1px line. Soft shadows only on product shots; gradients only as background light.'],
+              ['Flat color, no gradients', 'Every surface is one solid color. Depth comes from a 1px line and soft shadows on product shots only.'],
               ['Plain words', 'Sentence case. Buttons say what happens: Install Lintel, Approve in PayPal.'],
             ].map(([t, d]) => (
               <li key={t}><p className="font-semibold">{t}</p><p className="mt-1 text-[15px] leading-relaxed text-soft">{d}</p></li>

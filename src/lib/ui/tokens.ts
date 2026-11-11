@@ -37,7 +37,6 @@ export const ROLE_GROUPS: { title: string; note: string; roles: Role[] }[] = [
       { name: 'brand-wash', usage: 'Highlighted and live states' },
       { name: 'brand-soft', usage: 'Selected rows, soft fills' },
       { name: 'brand-bright', usage: 'Brand on night backgrounds', onDark: true },
-      { name: 'brand-2', usage: 'Violet end of brand gradients and glows, never alone' },
     ],
   },
   {

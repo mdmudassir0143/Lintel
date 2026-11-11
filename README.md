@@ -83,6 +83,14 @@ Demo flow:
 4. Click **Scan the store** (score 70), then send the agent again.
 5. Approve in PayPal. The agent pays, and the score reaches 100.
 
+## Accounts, stores and admin
+
+- **Sign up / log in** with email and password (scrypt-hashed; sessions are random tokens in an httpOnly cookie, stored hashed).
+- **Add a store** (name, address, PayPal business email). Lintel scans it right away and the report says what to fix and who fixes it.
+- **Setup checklist** on each store: import products (Shopify `/products.json`, schema.org data on the homepage, or CSV), AI rewrite (turns on the agent checkout), add the snippet and **check it on the live site**, save the PayPal account (payments are made out to it; it is marked confirmed after the first captured payment), send a test agent.
+- **Admin console** at `/admin` for accounts listed in `ADMIN_EMAILS`: all accounts, stores, agent runs, orders and revenue.
+- Merchants only see their own stores (plus the shared demo store). Store addresses must be public; agents and scans never reach private networks.
+
 ## Run locally
 
 Requirements: Node 20+, a free PayPal developer sandbox app (a **US** sandbox Business account is required for USD), and a free Groq key and/or Gemini key.

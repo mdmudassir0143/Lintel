@@ -17,8 +17,6 @@
   --p-blue-500: #2d2df1;
   --p-blue-600: #2222d4;
   --p-blue-700: #1a1aa8;
-  /* Violet: only as the far end of brand gradients and glows. */
-  --p-violet-500: #7b61ff;
   /* Navy: ink and night. */
   --p-navy-950: #001324;
   --p-navy-900: #071e33;
@@ -65,7 +63,6 @@
   --color-brand-wash: var(--p-blue-50);      /* selected and highlighted backgrounds */
   --color-brand-soft: var(--p-blue-100);
   --color-brand-bright: var(--p-blue-300);   /* brand on night backgrounds */
-  --color-brand-2: var(--p-violet-500);      /* gradient partner of brand, never alone */
   /* Night: dark sections, code blocks, the doorway posts */
   --color-night: var(--p-navy-950);
   --color-night-raised: var(--p-navy-800);
@@ -106,22 +103,6 @@ body { background: var(--color-canvas); color: var(--color-ink); }
 :focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; border-radius: 4px; }
 ::selection { background: var(--color-brand); color: white; }
 
-/* Brand atmosphere: soft blue, violet and teal light behind the hero and CTA. */
-.aurora {
-  background:
-    radial-gradient(55% 60% at 50% -5%, rgb(45 45 241 / .16), transparent 70%),
-    radial-gradient(35% 45% at 88% 8%, rgb(23 202 198 / .16), transparent 70%),
-    radial-gradient(35% 45% at 8% 14%, rgb(123 97 255 / .14), transparent 70%);
-}
-.grid-fade {
-  background-image: linear-gradient(rgb(0 19 36 / .045) 1px, transparent 1px), linear-gradient(90deg, rgb(0 19 36 / .045) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(70% 60% at 50% 0%, black, transparent 75%);
-}
-.brand-gradient { background-image: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-2) 100%); }
-.text-gradient { background-image: linear-gradient(90deg, var(--color-brand) 0%, var(--color-brand-2) 60%, var(--p-teal-400) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.night-glow { background: radial-gradient(50% 60% at 80% 0%, rgb(45 45 241 / .35), transparent 70%), radial-gradient(40% 50% at 0% 100%, rgb(23 202 198 / .12), transparent 70%), var(--color-night); }
-
 /* The one orchestrated moment: stones set into the beam. */
 @keyframes set-stone { from { transform: translateY(-18px); opacity: 0; } to { transform: none; opacity: 1; } }
 .stone { animation: set-stone 520ms cubic-bezier(.2,.8,.2,1) both; }
@@ -133,12 +114,6 @@ body { background: var(--color-canvas); color: var(--color-ink); }
   .stone, .line-in, .pulse-dot { animation: none; }
   html { scroll-behavior: auto; }
 }
-.hatch { background-image: repeating-linear-gradient(135deg, currentColor 0 2px, transparent 2px 7px); }
 
-/* "Thinking" text shimmer used in the chat demo. */
-@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-.shimmer { background: linear-gradient(90deg, var(--color-muted) 30%, var(--color-ink) 50%, var(--color-muted) 70%) 0 0 / 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 1.6s linear infinite; }
-/* Closing call to action: the brand, lit from the top. */
-.cta-glow { background: radial-gradient(60% 80% at 50% 0%, rgb(255 255 255 / .22), transparent 70%), radial-gradient(40% 60% at 100% 100%, rgb(23 202 198 / .35), transparent 70%), linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-2) 100%); }
-/* Light section with brand light for the payments story. */
-.brand-light { background: radial-gradient(45% 55% at 85% 10%, rgb(45 45 241 / .10), transparent 70%), radial-gradient(40% 50% at 5% 95%, rgb(123 97 255 / .08), transparent 70%), var(--color-subtle); }
+/* "Thinking" text pulse used in the chat demo. */
+.shimmer { animation: pulse-dot 1.4s ease-in-out infinite; color: var(--color-muted); }

@@ -22,11 +22,13 @@ function merchantFor(url: string): string | null {
   return url.replace(/\/$/, '').startsWith(demo) ? 'ridgeline' : null;
 }
 
-export function createScan(url: string): string {
+export interface ScanOwner { merchantId?: string | null; userId?: string | null }
+
+export function createScan(url: string, owner: ScanOwner = {}): string {
   const id = crypto.randomUUID();
   getDb()
-    .prepare(`insert into scans (id, url, merchant_id, status, created_at) values (?, ?, ?, 'running', ?)`)
-    .run(id, url, merchantFor(url), Date.now());
+    .prepare(`insert into scans (id, url, merchant_id, user_id, status, created_at) values (?, ?, ?, ?, 'running', ?)`)
+    .run(id, url, owner.merchantId ?? merchantFor(url), owner.userId ?? null, Date.now());
   return id;
 }
 
@@ -52,8 +54,8 @@ export async function runScan(url: string): Promise<string> {
 }
 
 /** Starts a scan in the background and returns its id immediately (for the API). */
-export function startScan(url: string): string {
-  const id = createScan(url);
+export function startScan(url: string, owner: ScanOwner = {}): string {
+  const id = createScan(url, owner);
   void completeScan(id, url);
   return id;
 }

@@ -46,9 +46,7 @@ export default function Landing() {
       <SiteNav />
       <main>
         {/* Hero */}
-        <section id="scan" className="relative scroll-mt-20 overflow-hidden">
-          <div className="aurora pointer-events-none absolute inset-0" aria-hidden />
-          <div className="grid-fade pointer-events-none absolute inset-0" aria-hidden />
+        <section id="scan" className="relative scroll-mt-20 overflow-hidden bg-subtle">
           <div className="relative mx-auto grid max-w-[1200px] items-center gap-14 px-5 pb-20 pt-14 md:px-8 lg:grid-cols-[1.1fr_1fr] lg:gap-10 lg:pb-28 lg:pt-20 [&>*]:min-w-0">
             <div>
               <HeroHeadline className="t-display !text-[clamp(2.5rem,1.3rem+3.1vw,3.9rem)]" lines={['Your next customer', 'is an AI agent.', 'Let it in.']} />
@@ -182,13 +180,12 @@ export default function Landing() {
             <p className="mt-4 text-lg leading-relaxed text-soft">See each step an agent takes in your store, the moment it asks to pay, and the PayPal capture when it does.</p>
           </div>
           <Reveal className="relative mx-auto mt-14 max-w-[1080px]">
-            <div className="brand-gradient pointer-events-none absolute inset-x-0 md:-inset-x-10 top-10 bottom-0 rounded-[40px] opacity-[.16] blur-3xl" aria-hidden />
             <div className="relative"><HeroShot /></div>
           </Reveal>
         </section>
 
         {/* Payments */}
-        <section id="payments" className="brand-light scroll-mt-16 border-y border-line">
+        <section id="payments" className="scroll-mt-16 border-y border-line bg-subtle">
           <div className="mx-auto grid max-w-[1200px] gap-14 px-5 py-24 md:px-8 lg:grid-cols-[1fr_1.05fr] lg:py-32 [&>*]:min-w-0">
             <div>
               <h2 className="t-h1">An agent checkout your customers can trust.</h2>
@@ -271,7 +268,7 @@ export default function Landing() {
 
         {/* Final CTA */}
         <section className="mx-auto max-w-[1200px] px-5 py-24 md:px-8">
-          <div className="cta-glow relative overflow-hidden rounded-3xl px-6 py-16 text-center text-white sm:px-12 md:py-20">
+          <div className="relative overflow-hidden rounded-3xl bg-brand px-6 py-16 text-center text-white sm:px-12 md:py-20">
             <h2 className="t-h1 mx-auto max-w-[720px]">See what an AI agent sees at your store.</h2>
             <p className="mx-auto mt-4 max-w-[520px] text-lg text-white/80">Get your score in seconds, then watch a real agent try to buy.</p>
             <div className="mt-9 flex flex-col items-center gap-3">

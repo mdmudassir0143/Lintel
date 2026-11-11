@@ -15,7 +15,7 @@ describe('db', () => {
       .prepare("select name from sqlite_master where type='table' and name not like 'sqlite_%' order by name")
       .all()
       .map((r: any) => r.name);
-    expect(names).toEqual(['merchants', 'orders', 'payment_nonces', 'runs', 'scans', 'steps']);
+    expect(names).toEqual(['merchants', 'orders', 'payment_nonces', 'runs', 'scans', 'sessions', 'steps', 'users']);
   });
 });
 

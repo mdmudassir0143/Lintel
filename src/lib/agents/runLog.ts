@@ -4,15 +4,15 @@ import { getDb } from '../db';
 export type RunStatus = 'running' | 'awaiting_approval' | 'succeeded' | 'failed';
 export interface RunRow {
   id: string; scan_id: string | null; merchant_id: string | null; kind: 'headless' | 'browser'; goal: string;
-  status: RunStatus; summary: string | null; live_view_url: string | null; created_at: number;
+  status: RunStatus; summary: string | null; live_view_url: string | null; created_at: number; user_id?: string | null;
 }
 export interface StepRow { idx: number; action: string; detail: any; screenshot: string | null; created_at: number }
 
-export function createRun(r: { kind: 'headless' | 'browser'; goal: string; scanId?: string; merchantId?: string }): string {
+export function createRun(r: { kind: 'headless' | 'browser'; goal: string; scanId?: string; merchantId?: string; userId?: string }): string {
   const id = crypto.randomUUID();
   getDb()
-    .prepare(`insert into runs (id, scan_id, merchant_id, kind, goal, status, created_at) values (?, ?, ?, ?, ?, 'running', ?)`)
-    .run(id, r.scanId ?? null, r.merchantId ?? null, r.kind, r.goal, Date.now());
+    .prepare(`insert into runs (id, scan_id, merchant_id, user_id, kind, goal, status, created_at) values (?, ?, ?, ?, ?, ?, 'running', ?)`)
+    .run(id, r.scanId ?? null, r.merchantId ?? null, r.userId ?? null, r.kind, r.goal, Date.now());
   return id;
 }
 

@@ -1,27 +1,30 @@
 import { getDb } from '@/lib/db';
-import { getMerchant } from '@/lib/catalog';
 import { generateFixes, saveFixes, currentBundle } from '@/lib/fixes/generate';
 import { cleanCatalog, writeToolDescriptions } from '@/lib/scan/analyze';
 import { LlmUnavailableError } from '@/lib/llm';
+import { requireStore } from '@/lib/server/session';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 120;
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const m = getMerchant(id);
-  if (!m) return Response.json({ error: 'unknown merchant' }, { status: 404 });
+  const g = await requireStore(id);
+  if (g instanceof Response) return g;
+  const m = g.store;
   return Response.json({ installed: m.installed === 1, bundle: currentBundle(id) });
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  if (!getMerchant(id)) return Response.json({ error: 'unknown merchant' }, { status: 404 });
+  const g = await requireStore(id, req);
+  if (g instanceof Response) return g;
   const { installed } = await req.json().catch(() => ({ installed: true }));
   if (installed === false) {
     getDb().prepare('update merchants set installed = 0 where id = ?').run(id);
     return Response.json({ installed: false });
   }
+  if (!(JSON.parse(g.store.raw_catalog || '[]') as unknown[]).length) return Response.json({ error: 'Import your products first.' }, { status: 400 });
   try {
     const bundle = await generateFixes(id, { cleanCatalog: (raw) => cleanCatalog(raw), writeToolDescriptions: (n, c) => writeToolDescriptions(n, c) });
     saveFixes(id, bundle);

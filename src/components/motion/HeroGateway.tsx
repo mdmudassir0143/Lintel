@@ -7,8 +7,6 @@ import { PayPalMark } from '../brand';
 gsap.registerPlugin(useGSAP);
 
 const WEIGHTS = [30, 15, 10, 10, 10, 10, 5, 5, 5];
-// Blue to violet across the beam.
-const STONE = ['#2d2df1', '#3530f2', '#3d34f4', '#4638f5', '#4f3df7', '#5a44f9', '#6449fb', '#6e50fd', '#7b61ff'];
 
 const STEPS: { text: string; sub: string; pay?: boolean }[] = [
   { text: 'Found the store’s tools', sub: 'search, cart, checkout' },
@@ -33,7 +31,6 @@ export function HeroGateway() {
         build
           .from(q('[data-post]'), { scaleY: 0, transformOrigin: '50% 100%', duration: 0.7, stagger: 0.08 })
           .from(q('[data-stone]'), { y: -70, opacity: 0, rotate: () => gsap.utils.random(-8, 8), duration: 0.7, ease: 'back.out(1.7)', stagger: 0.07 }, '-=0.25')
-          .from(q('[data-glow]'), { opacity: 0, duration: 0.8 }, '-=0.3')
           .from(q('[data-room]'), { opacity: 0, y: 12, duration: 0.5 }, '-=0.5');
 
         const walk = gsap.timeline({ repeat: -1, repeatDelay: 1.2, defaults: { ease: 'power2.out' } });
@@ -60,19 +57,18 @@ export function HeroGateway() {
             key={i}
             data-stone
             data-anim
-            className="min-w-0 basis-0 rounded-[5px] shadow-[inset_0_1px_0_rgb(255_255_255/.35),0_8px_18px_-8px_rgb(45_45_241/.55)]"
-            style={{ flexGrow: w, background: `linear-gradient(180deg, ${STONE[i]}cc, ${STONE[i]})` }}
+            className="min-w-0 basis-0 rounded-[5px] bg-brand"
+            style={{ flexGrow: w }}
           />
         ))}
       </div>
       {/* Posts and the room between them */}
       <div className="relative mt-1 flex gap-1 px-[5%]">
-        <div data-post data-anim className="w-[9%] shrink-0 rounded-b-[5px] bg-gradient-to-b from-[#c9c9fb] to-[#eeeefe] ring-1 ring-brand/10" />
-        <div className="relative min-w-0 flex-1 overflow-hidden rounded-b-2xl bg-white/80 ring-1 ring-line backdrop-blur">
-          <div data-glow data-anim className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_55%_at_50%_0%,rgb(45_45_241/.16),transparent_70%),radial-gradient(60%_40%_at_50%_100%,rgb(23_202_198/.14),transparent_70%)]" />
+        <div data-post data-anim className="w-[9%] shrink-0 rounded-b-[5px] bg-brand-soft" />
+        <div className="relative min-w-0 flex-1 overflow-hidden rounded-b-2xl bg-white ring-1 ring-line">
           <div data-room data-anim className="relative flex min-h-[340px] flex-col p-4 sm:min-h-[380px] sm:p-5">
             <div data-agent className="flex items-center gap-2.5 self-start rounded-full bg-white py-1 pl-1 pr-3 shadow-[var(--shadow-card)]">
-              <span className="brand-gradient grid h-7 w-7 place-items-center rounded-full text-white">
+              <span className="grid h-7 w-7 bg-brand place-items-center rounded-full text-white">
                 <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden><path d="M12 2l1.8 5.6L19.5 9.5l-5.7 1.9L12 17l-1.8-5.6L4.5 9.5l5.7-1.9z" /></svg>
               </span>
               <span className="text-[13px] font-semibold">AI agent</span>
@@ -97,7 +93,7 @@ export function HeroGateway() {
             </div>
           </div>
         </div>
-        <div data-post data-anim className="w-[9%] shrink-0 rounded-b-[5px] bg-gradient-to-b from-[#c9c9fb] to-[#eeeefe] ring-1 ring-brand/10" />
+        <div data-post data-anim className="w-[9%] shrink-0 rounded-b-[5px] bg-brand-soft" />
       </div>
       {/* Threshold */}
       <div className="mx-[2%] mt-1 h-1.5 rounded-full bg-line" aria-hidden />

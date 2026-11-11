@@ -25,6 +25,11 @@ export interface MerchantRow {
   raw_catalog: string;
   clean_catalog: string | null;
   tool_descriptions: string | null;
+  owner_id: string | null;
+  paypal_email: string | null;
+  created_at: number | null;
+  install_verified_at: number | null;
+  paypal_verified_at: number | null;
 }
 
 export function getMerchant(id: string): MerchantRow | undefined {

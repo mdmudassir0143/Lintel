@@ -90,13 +90,13 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
     return () => { stop = true; };
   }, [id]);
 
-  const crumbs = [{ label: 'Overview', href: '/app' }, { label: 'Agent run' }];
+  const crumbs = [{ label: 'Stores', href: '/app' }, { label: 'Agent run' }];
   if (missing)
     return (
       <AppShell crumbs={crumbs}>
         <div className="pt-16">
           <h1 className="t-h2">This run doesn’t exist</h1>
-          <ButtonLink href="/app" className="mt-6">Go to overview</ButtonLink>
+          <ButtonLink href="/app" className="mt-6">Go to your stores</ButtonLink>
         </div>
       </AppShell>
     );

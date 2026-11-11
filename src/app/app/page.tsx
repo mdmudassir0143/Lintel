@@ -1,121 +1,133 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { AppShell } from '@/components/AppShell';
-import { ScanForm } from '@/components/ScanForm';
-import { Panel, PanelHeader, Pill, ButtonLink, timeAgo } from '@/components/ui';
-import { scoreTone } from '@/components/LintelScore';
-import { RUN_STATUS, type StoreSummary } from '@/lib/ui/types';
+import { AppShell, useUser } from '@/components/AppShell';
+import { ButtonLink, Panel, Pill, Spinner } from '@/components/ui';
+import { scoreState } from '@/components/LintelScore';
+import type { StoreCard } from '@/lib/ui/types';
 
-const STORE_ID = 'ridgeline';
-
-export default function Overview() {
-  const [data, setData] = useState<StoreSummary | null>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    let stop = false;
-    const load = () =>
-      fetch(`/api/merchant/${STORE_ID}/orders`)
-        .then((r) => (r.ok ? r.json() : Promise.reject()))
-        .then((d) => !stop && setData(d))
-        .catch(() => !stop && setFailed(true));
-    load();
-    const t = setInterval(load, 6000);
-    return () => { stop = true; clearInterval(t); };
-  }, []);
-
-  const latest = data?.scans[0];
-  const revenue = data ? data.orders.reduce((s, o) => s + Number(o.amount), 0) : 0;
-
+export default function StoresHome() {
   return (
     <AppShell>
-      <div className="flex flex-col gap-8 pt-10 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h1 className="t-h2">Overview</h1>
-          <p className="mt-1 text-muted">Scan any store, or manage the stores you’ve opened to AI agents.</p>
-        </div>
-        <div className="lg:w-[520px]"><ScanForm size="md" /></div>
-      </div>
-
-      {failed && <p className="mt-8 text-danger">Couldn’t load your stores. Refresh to try again.</p>}
-
-      <section className="mt-10">
-        <h2 className="text-[15px] font-semibold">Your stores</h2>
-        <Panel className="mt-3">
-          {!data ? (
-            <div className="h-[120px] animate-pulse" />
-          ) : (
-            <div className="grid gap-6 p-5 md:grid-cols-[1.4fr_1fr_1fr_1fr_auto] md:items-center">
-              <div className="min-w-0">
-                <Link href={`/app/stores/${STORE_ID}`} className="text-[17px] font-semibold hover:text-brand">{data.merchant.name}</Link>
-                <p className="truncate text-sm text-muted">{data.merchant.storeUrl}</p>
-              </div>
-              <Stat label="Agent access">
-                {data.merchant.installed ? <Pill tone="pass">Open to agents</Pill> : <Pill tone="fail">Closed to agents</Pill>}
-              </Stat>
-              <Stat label="Readiness">
-                {latest ? <span className={`headline num text-2xl ${scoreTone(latest.score)}`}>{latest.score}</span> : <span className="text-muted">Not scanned</span>}
-              </Stat>
-              <Stat label="Paid by agents">
-                <span className="headline num text-2xl">${revenue.toFixed(2)}</span>
-                <span className="ml-1.5 text-sm text-muted">{data.orders.length} {data.orders.length === 1 ? 'order' : 'orders'}</span>
-              </Stat>
-              <ButtonLink href={`/app/stores/${STORE_ID}`} variant="secondary">Manage</ButtonLink>
-            </div>
-          )}
-        </Panel>
-      </section>
-
-      <div className="mt-8 grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
-        <Panel>
-          <PanelHeader title="Recent scans" sub="Each scan reads the store the way an AI agent would." />
-          {data && data.scans.length === 0 && <Empty>No scans yet. Enter a store address above to run the first one.</Empty>}
-          <ul className="divide-y divide-line">
-            {data?.scans.slice(0, 6).map((s) => (
-              <li key={s.id}>
-                <Link href={`/app/scan/${s.id}`} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-subtle/60">
-                  <span className="min-w-0">
-                    <span className="block truncate text-[15px] font-medium">{data.merchant.name}</span>
-                    <span className="text-sm text-muted">{timeAgo(s.created_at)}</span>
-                  </span>
-                  <span className={`headline num text-xl ${scoreTone(s.score)}`}>{s.score}<span className="text-sm font-medium text-muted"> /100</span></span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </Panel>
-        <Panel>
-          <PanelHeader title="Agent runs" sub="Every time an AI agent tried to buy, and how it went." />
-          {data && data.runs.length === 0 && <Empty>No agents sent yet. Open a scan and send one to buy.</Empty>}
-          <ul className="divide-y divide-line">
-            {data?.runs.slice(0, 6).map((r) => (
-              <li key={r.id}>
-                <Link href={`/app/run/${r.id}`} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-subtle/60">
-                  <span className="min-w-0">
-                    <span className="block truncate text-[15px] font-medium">{r.summary ?? r.goal}</span>
-                    <span className="text-sm text-muted">{r.kind === 'browser' ? 'Browser agent' : 'API agent'}, {timeAgo(r.created_at)}</span>
-                  </span>
-                  <Pill tone={RUN_STATUS[r.status].tone}>{RUN_STATUS[r.status].label}</Pill>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </Panel>
-      </div>
+      <Stores />
     </AppShell>
   );
 }
 
-function Stat({ label, children }: { label: string; children: React.ReactNode }) {
+function Stores() {
+  const user = useUser();
+  const [stores, setStores] = useState<StoreCard[] | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let stop = false;
+    const load = () =>
+      fetch('/api/stores')
+        .then(async (r) => {
+          if (!r.ok) throw new Error();
+          const b = await r.json();
+          if (!stop) setStores(b.stores);
+        })
+        .catch(() => !stop && setError('Couldn’t load your stores. Refresh to try again.'));
+    load();
+    const t = setInterval(load, 8000);
+    return () => { stop = true; clearInterval(t); };
+  }, []);
+
+  const own = stores?.filter((s) => !s.isDemo) ?? [];
+  const demo = stores?.filter((s) => s.isDemo) ?? [];
+
   return (
-    <div>
-      <p className="text-[13px] text-muted">{label}</p>
-      <div className="mt-1 flex items-baseline">{children}</div>
-    </div>
+    <>
+      <div className="flex flex-col gap-4 pt-10 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="t-h2">{user ? `Welcome, ${user.name.split(' ')[0]}` : 'Your stores'}</h1>
+          <p className="mt-1 text-muted">Open your stores to AI shopping agents and get paid through PayPal.</p>
+        </div>
+        <ButtonLink href="/app/stores/new">Add a store</ButtonLink>
+      </div>
+      {error && <p className="mt-8 text-danger">{error}</p>}
+      {!stores && !error && <p className="mt-10 flex items-center gap-2 text-muted"><Spinner /> Loading your stores</p>}
+
+      {stores && own.length === 0 && (
+        <Panel className="mt-8">
+          <div className="grid gap-8 p-8 md:grid-cols-[1.2fr_1fr] md:items-center">
+            <div>
+              <h2 className="t-h3">Add your first store</h2>
+              <p className="mt-2 max-w-[460px] leading-relaxed text-soft">
+                Enter your store’s address. We’ll scan it the way an AI agent reads it, show you what’s blocking agents, and walk you through fixing it.
+              </p>
+              <ButtonLink href="/app/stores/new" size="lg" className="mt-6">Add a store</ButtonLink>
+            </div>
+            <ol className="space-y-3 text-[15px]">
+              {['Add your store', 'See your agent-readiness score', 'Follow the setup steps', 'Get paid by AI agents through PayPal'].map((t, i) => (
+                <li key={t} className="flex items-center gap-3">
+                  <span className="num grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-wash text-[13px] font-semibold text-brand-ink">{i + 1}</span>
+                  {t}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </Panel>
+      )}
+
+      {own.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-[15px] font-semibold">{user?.role === 'admin' ? 'All stores' : 'Your stores'}</h2>
+          <div className="mt-3 grid gap-4 md:grid-cols-2">{own.map((s) => <StoreTile key={s.id} s={s} />)}</div>
+        </section>
+      )}
+
+      {demo.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-[15px] font-semibold">Demo store</h2>
+          <p className="mt-0.5 text-sm text-muted">A sample coffee shop you can scan, fix and buy from, to see the whole flow.</p>
+          <div className="mt-3 grid gap-4 md:grid-cols-2">{demo.map((s) => <StoreTile key={s.id} s={s} />)}</div>
+        </section>
+      )}
+    </>
   );
 }
 
-function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="px-5 py-8 text-sm text-muted">{children}</p>;
+function StoreTile({ s }: { s: StoreCard }) {
+  const done = s.setup.filter((x) => x.done).length;
+  const next = s.setup.find((x) => !x.done);
+  const st = s.latestScore != null ? scoreState(s.latestScore) : null;
+  return (
+    <Link href={`/app/stores/${s.id}`} className="group block rounded-2xl border border-line bg-surface p-5 transition-colors hover:border-ink/25">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="truncate text-[17px] font-semibold group-hover:text-brand">{s.name}</p>
+          <p className="truncate text-sm text-muted">{s.storeUrl}</p>
+        </div>
+        {st ? <Pill tone={st.tone}>{st.label}</Pill> : <Pill tone="neutral">Not scanned</Pill>}
+      </div>
+      <div className="mt-5 grid grid-cols-3 gap-4 border-t border-line pt-4">
+        <Stat label="Readiness" value={s.latestScore != null ? `${s.latestScore}` : '—'} suffix="/100" />
+        <Stat label="Agent orders" value={`${s.orders}`} />
+        <Stat label="Paid" value={`$${s.revenue}`} />
+      </div>
+      <div className="mt-4">
+        <div className="flex items-center justify-between text-[13px]">
+          <span className="text-muted">Setup {done} of {s.setup.length}</span>
+          <span className="font-medium text-brand">{next ? `Next: ${next.title}` : 'Complete'}</span>
+        </div>
+        <div className="mt-2 flex gap-1">
+          {s.setup.map((x) => <span key={x.id} className={`h-1.5 flex-1 rounded-full ${x.done ? 'bg-brand' : 'bg-line'}`} />)}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function Stat({ label, value, suffix }: { label: string; value: string; suffix?: string }) {
+  return (
+    <div>
+      <p className="text-[12.5px] text-muted">{label}</p>
+      <p className="t-stat mt-1 text-[22px]">
+        {value}
+        {suffix && <span className="text-[13px] font-medium text-muted">{suffix}</span>}
+      </p>
+    </div>
+  );
 }
