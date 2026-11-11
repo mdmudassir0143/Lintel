@@ -5,6 +5,8 @@ export interface SiteSnapshot {
   html?: string;
   robotsTxt?: string;
   checkoutHtml?: string;
+  /** One product page, followed from the home page: most stores put Product data there, not on the home page. */
+  productHtml?: string;
   manifestJson?: any;
   error?: string;
 }
@@ -88,6 +90,9 @@ export async function fetchSite(url: string, opts: { timeoutMs?: number; maxByte
 
   const checkout = findLink(home.text, finalUrl, (href, text) => /checkout|cart|basket|bag/i.test(href) || /checkout|cart|basket/i.test(text));
   if (checkout) snap.checkoutHtml = (await tryText(checkout))?.text;
+
+  const product = findLink(home.text, finalUrl, (href) => /\/(products?|p|item|shop)\/[^/?#]+/i.test(href) && !/checkout|cart/i.test(href));
+  if (product) snap.productHtml = (await tryText(product))?.text;
 
   const mh = manifestHref(home.text);
   if (mh) {

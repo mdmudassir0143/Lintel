@@ -89,14 +89,19 @@ export function runStaticChecks(s: SiteSnapshot): CheckResult[] {
     result('robots_allows_ai', blocked.length ? 'fail' : 'pass', blocked.length ? `robots.txt blocks: ${blocked.join(', ')}` : s.robotsTxt ? 'robots.txt allows AI agents' : 'No robots.txt (agents allowed by default)'),
   );
 
-  const products = jsonLdProducts(html);
-  const withOffer = products.filter((p) => {
+  const priced = (ps: any[]) => ps.filter((p) => {
     const o = Array.isArray(p.offers) ? p.offers[0] : p.offers;
     return o?.price && o?.priceCurrency;
   });
+  const homeProducts = jsonLdProducts(html);
+  const pageProducts = homeProducts.length ? [] : jsonLdProducts(s.productHtml ?? '');
+  const products = homeProducts.length ? homeProducts : pageProducts;
+  const withOffer = priced(products);
+  const where = homeProducts.length ? '' : ' on a product page';
   checks.push(
     result('product_jsonld', withOffer.length ? 'pass' : products.length ? 'partial' : 'fail',
-      withOffer.length ? `${withOffer.length} products with price data` : products.length ? 'Products found but without price/currency' : 'No schema.org Product data on the page'),
+      withOffer.length ? `${withOffer.length} product${withOffer.length > 1 ? 's' : ''} with price data${where}`
+        : products.length ? `Products found${where} but without price/currency` : 'No schema.org Product data on the home page or a product page'),
   );
 
   const text = visibleText(html);
@@ -109,8 +114,10 @@ export function runStaticChecks(s: SiteSnapshot): CheckResult[] {
   const forced = /type=["']password["']/i.test(checkout) || /create an account/i.test(checkout);
   checks.push(result('guest_checkout', !checkout ? 'partial' : forced ? 'fail' : 'pass', !checkout ? 'Could not find a cart/checkout page' : forced ? 'Checkout requires creating an account' : 'Checkout works without an account'));
 
-  const pp = /paypal\.com\/sdk\/js|paypal-button|data-paypal/i.test(html + checkout);
-  checks.push(result('paypal_checkout', pp ? 'pass' : 'fail', pp ? 'PayPal checkout detected' : 'No PayPal payment option found'));
+  const ppPage = /paypal\.com\/sdk\/js|paypal-button|data-paypal/i.test(html + checkout);
+  const ppAgent = Array.isArray(s.manifestJson?.checkout?.schemes) && s.manifestJson.checkout.schemes.some((x: unknown) => /paypal/i.test(String(x)));
+  checks.push(result('paypal_checkout', ppPage || ppAgent ? 'pass' : 'fail',
+    ppPage ? 'PayPal checkout detected' : ppAgent ? 'Agents pay with PayPal through the store’s agent checkout' : 'No PayPal payment option found'));
 
   const webmcp = /lintel\.js|modelContext\.registerTool/i.test(html);
   checks.push(result('webmcp_tools', webmcp ? 'pass' : 'fail', webmcp ? 'WebMCP tools are registered on the page' : 'No WebMCP tools on the page'));

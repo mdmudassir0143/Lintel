@@ -105,3 +105,37 @@ describe('fetchSite', () => {
     expect(s.html!.length).toBeLessThanOrEqual(100_000);
   });
 });
+
+describe('stores that install the Lintel snippet', () => {
+  const plain = (extra: Partial<SiteSnapshot> = {}): SiteSnapshot => ({
+    url: 'http://shop.test/', ok: true, status: 200,
+    html: '<html><head></head><body><a href="/products/assam">Assam</a> $11</body></html>', ...extra,
+  });
+  const manifest = { catalog: 'http://lintel.test/m/x/agent/catalog', checkout: { url: 'http://lintel.test/m/x/agent/checkout', protocol: 'x402', x402Version: 2, schemes: ['paypal-order'] } };
+
+  it('counts PayPal as accepted when the agent checkout settles through PayPal', () => {
+    const c = byId(runStaticChecks(plain({ manifestJson: manifest })));
+    expect(c.paypal_checkout.status).toBe('pass');
+    expect(c.paypal_checkout.evidence).toMatch(/PayPal/);
+  });
+
+  it('still fails PayPal with no PayPal on the page and no PayPal agent checkout', () => {
+    expect(byId(runStaticChecks(plain())).paypal_checkout.status).toBe('fail');
+  });
+
+  it('reads Product data from a product page when the home page has none', () => {
+    const productHtml = '<script type="application/ld+json">{"@type":"Product","name":"Assam","offers":{"price":"11.00","priceCurrency":"USD"}}</script>';
+    const c = byId(runStaticChecks(plain({ productHtml })));
+    expect(c.product_jsonld.status).toBe('pass');
+    expect(c.product_jsonld.evidence).toMatch(/product page/i);
+  });
+
+  it('fetchSite follows one product link and keeps its HTML', async () => {
+    const base = await serve((req, res) => {
+      res.setHeader('content-type', 'text/html');
+      res.end(req.url === '/products/assam' ? '<p>assam page</p>' : '<a href="/products/assam">Assam</a>');
+    });
+    const s = await fetchSite(base + '/', { allowHosts: [new URL(base).host] });
+    expect(s.productHtml).toContain('assam page');
+  });
+});
