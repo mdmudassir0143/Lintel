@@ -51,10 +51,9 @@ export default function Landing() {
         <section id="scan" className="relative scroll-mt-20 overflow-hidden bg-subtle">
           <div className="relative mx-auto grid max-w-[1200px] items-center gap-14 px-5 pb-20 pt-14 md:px-8 lg:grid-cols-[1.1fr_1fr] lg:gap-10 lg:pb-28 lg:pt-20 [&>*]:min-w-0">
             <div>
-              <HeroHeadline className="t-display !text-[clamp(2.5rem,1.3rem+3.1vw,3.9rem)]" lines={['Your next customer', 'is an AI agent.', 'Let it in.']} />
+              <HeroHeadline className="t-display !text-[clamp(2.5rem,1.3rem+3.1vw,3.9rem)]" lines={['Your customer','might be an', 'AI agent.']} />
               <p data-fade className="mt-6 max-w-[540px] text-lg leading-relaxed text-soft md:text-xl">
-                AI assistants now shop for people. Lintel makes any store buyable by any AI agent, on WooCommerce, Wix,
-                Squarespace, Webflow or your own code, and gets you paid through PayPal, with the buyer’s approval.
+              Turn any online store into an AI ready storefront. Accept agent-led purchases and get paid securely through PayPal.
               </p>
               <div data-fade className="mt-9"><ScanForm /></div>
               <div data-fade className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">

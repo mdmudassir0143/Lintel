@@ -11,6 +11,10 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 4000);
 const products = () => JSON.parse(fs.readFileSync(path.join(dir, 'products.json'), 'utf8'));
 const headCode = () => process.env.HEAD_HTML ?? fs.readFileSync(path.join(dir, 'head.html'), 'utf8');
+const headFile = path.join(dir, 'head.html');
+// The theme editor is a local-only stand-in for a shop admin's "custom code" setting. It is off on
+// Render and whenever HEAD_HTML is set, so the public store can't be edited by visitors.
+const editorOn = () => !process.env.RENDER && process.env.HEAD_HTML == null;
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
 const C = { paper: '#f4f1ea', card: '#fbfaf6', ink: '#24221e', muted: '#6e695f', line: '#e2ddd1', olive: '#4f5d2f', oliveDark: '#3d4824', tea: '#8a5a3b' };
@@ -97,6 +101,39 @@ const card = (p) => `<a class="card" href="/products/${p.handle}">${art(p)}
   <div class="muted" style="font-size:14px">${esc(p.notes)}</div>
   ${p.inStock ? `<span class="tag">${esc(p.category)}</span>` : '<span class="tag out">Sold out</span>'}</a>`;
 
+
+function adminPage(saved) {
+  const code = fs.readFileSync(headFile, 'utf8');
+  const has = /data-merchant=/.test(code);
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Theme code · Fernwood admin</title>
+<style>
+  *{box-sizing:border-box} body{margin:0;font:15px/1.55 system-ui,-apple-system,sans-serif;color:#1f2328;background:#f1f1f1}
+  .top{background:#1a1a1a;color:#fff;height:52px;display:flex;align-items:center;gap:12px;padding:0 20px;font-weight:600}
+  .top span{opacity:.6;font-weight:400} .top a{margin-left:auto;color:#fff;opacity:.85;font-weight:500;text-decoration:none}
+  .wrap{max-width:860px;margin:28px auto;padding:0 20px} h1{font-size:22px;margin:0 0 4px}
+  .muted{color:#616a75} .card{background:#fff;border:1px solid #e3e3e3;border-radius:12px;padding:22px;margin-top:20px}
+  label{display:block;font-weight:600;margin-bottom:4px} code{background:#f3f3f3;padding:1px 6px;border-radius:5px}
+  textarea{width:100%;min-height:200px;font:13px/1.5 ui-monospace,Menlo,monospace;border:1px solid #c9c9c9;border-radius:8px;padding:12px;margin-top:10px;resize:vertical}
+  textarea:focus{outline:2px solid #4f5d2f;border-color:transparent}
+  .row{display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap}
+  button{height:40px;padding:0 20px;border:0;border-radius:8px;background:#4f5d2f;color:#fff;font:600 14px system-ui;cursor:pointer} button:hover{background:#3d4824}
+  .ok{background:#e7f4ea;color:#185c2b;border-radius:8px;padding:10px 14px;margin-top:20px;font-weight:500}
+  .pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 10px;border-radius:99px;background:${has ? '#e7f4ea' : '#f3f3f3'};color:${has ? '#185c2b' : '#616a75'}}
+</style></head><body>
+<div class="top">Fernwood Tea Co. <span>/ Online store / Theme</span><a href="/" target="_blank">View store</a></div>
+<div class="wrap">
+  <h1>Theme code</h1>
+  <p class="muted">Code here is added to the <code>&lt;head&gt;</code> of every page of your store. Apps ask you to paste their snippet here.</p>
+  ${saved ? '<div class="ok" role="status">Published. Every page of your store now loads this code.</div>' : ''}
+  <form class="card" method="post" action="/admin/theme">
+    <label for="code">Code in &lt;head&gt;</label> <span class="pill">${has ? 'Lintel snippet added' : 'No apps added'}</span>
+    <textarea id="code" name="code" spellcheck="false" placeholder="Paste a snippet here">${esc(code.replace(/^<!--[\\s\\S]*?-->\\s*/, ''))}</textarea>
+    <div class="row"><button>Publish</button><span class="muted">Changes go live as soon as you publish.</span></div>
+  </form>
+</div></body></html>`;
+}
+
 function route(url, base) {
   const u = new URL(url, base);
   const all = products();
@@ -174,6 +211,22 @@ function route(url, base) {
 http.createServer((req, res) => {
   const proto = req.headers['x-forwarded-proto'] || 'http';
   const base = `${proto}://${req.headers.host || `localhost:${PORT}`}`;
+  const pathname = new URL(req.url || '/', base).pathname;
+  if (pathname === '/admin' || pathname === '/admin/theme') {
+    if (!editorOn()) { res.writeHead(404, { 'content-type': 'text/plain' }); return res.end('Not found'); }
+    if (req.method === 'POST' && pathname === '/admin/theme') {
+      let body = '';
+      req.on('data', (c) => { body += c; if (body.length > 20000) req.destroy(); });
+      req.on('end', () => {
+        const code = new URLSearchParams(body).get('code') ?? '';
+        fs.writeFileSync(headFile, '<!-- Theme <head> code, edited at /admin. -->\n' + code.trim() + '\n');
+        res.writeHead(303, { location: '/admin?saved=1' }); res.end();
+      });
+      return;
+    }
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    return res.end(adminPage(new URL(req.url, base).searchParams.has('saved')));
+  }
   try {
     const [status, type, body] = route(req.url || '/', base);
     res.writeHead(status, { 'content-type': `${type}; charset=utf-8` });

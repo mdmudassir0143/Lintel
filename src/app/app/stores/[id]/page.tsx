@@ -93,6 +93,66 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
       <p role={note.ok ? 'status' : 'alert'} className={`mt-3 rounded-lg px-3 py-2 text-sm ${note.ok ? 'bg-success-wash text-success-ink' : 'bg-danger-wash text-danger'}`}>{note.text}</p>
     );
 
+  const raw = merchant.raw ?? [];
+  const lastRun = runs[0];
+  const tools = bundle ? Object.keys(bundle.toolDescriptions) : [];
+  const changed = clean.filter((c) => raw.find((r) => r.sku === c.sku)?.title !== c.title || Object.keys(c.attributes ?? {}).length);
+  const host = (() => { try { return new URL(merchant.storeUrl).host; } catch { return merchant.storeUrl; } })();
+
+  /** A short record of what each finished step did, shown in its row and at the top of its body. */
+  const doneLabel: Record<SetupStepView['id'], string> = {
+    catalog: merchant.isDemo ? 'Done' : `${summary.productCount} products`,
+    rewrite: merchant.installed ? `${clean.length || summary.productCount} rewritten` : 'Done',
+    snippet: summary.installVerifiedAt ? `Found ${timeAgo(summary.installVerifiedAt)}` : 'Done',
+    paypal: summary.paypalVerified ? 'Confirmed' : summary.paypalEmail ? 'Saved' : 'Done',
+    test: lastRun ? RUN_STATUS[lastRun.status].label : 'Done',
+  };
+  const receipt: Partial<Record<SetupStepView['id'], ReactNode>> = {
+    catalog: !merchant.isDemo && raw.length > 0 && (
+      <Receipt title={`Imported ${raw.length} products`} note="Exactly as your store lists them. The next step rewrites them for agents.">
+        <ul className="divide-y divide-line">
+          {raw.slice(0, 6).map((p) => (
+            <li key={p.sku} className="flex items-center gap-3 py-2 text-sm">
+              <span className="num w-24 shrink-0 truncate text-[12px] text-muted">{p.sku}</span>
+              <span className="min-w-0 flex-1 truncate">{p.title}</span>
+              {!p.inStock && <span className="text-[12px] text-danger">Sold out</span>}
+              <span className="num font-medium">${p.price}</span>
+            </li>
+          ))}
+        </ul>
+        {raw.length > 6 && <p className="pt-2 text-sm text-muted">and {raw.length - 6} more. The full list is under “Your catalog, as agents see it”.</p>}
+      </Receipt>
+    ),
+    rewrite: merchant.installed && clean.length > 0 && (
+      <Receipt title={`Rewrote ${changed.length || clean.length} of ${clean.length} products and switched on agent checkout`} note="Prices and SKUs are unchanged.">
+        <ul className="space-y-3">
+          {(changed.length ? changed : clean).slice(0, 2).map((c) => (
+            <li key={c.sku} className="text-sm">
+              <div className="text-muted line-through decoration-line-strong">{raw.find((r) => r.sku === c.sku)?.title ?? c.sku}</div>
+              <div className="font-medium">{c.title}</div>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {Object.entries(c.attributes ?? {}).slice(0, 4).map(([k, v]) => <span key={k} className="rounded-md bg-subtle-strong px-2 py-0.5 text-[12px] text-soft">{k.replaceAll('_', ' ')}: {v}</span>)}
+              </div>
+            </li>
+          ))}
+        </ul>
+        {tools.length > 0 && <p className="mt-3 text-sm text-soft">Agents can now call {tools.length} tools: <span className="num text-[13px] text-ink">{tools.join(', ')}</span></p>}
+      </Receipt>
+    ),
+    snippet: !merchant.isDemo && summary.installVerifiedAt != null && (
+      <Receipt title={`Found the snippet on ${host}`} note={`Checked ${timeAgo(summary.installVerifiedAt)}. Agents that open your store now find its tools and the PayPal checkout.`}>
+        <a href={merchant.storeUrl} target="_blank" rel="noreferrer" className="text-sm font-medium text-brand hover:text-brand-hover">Open {host}</a>
+      </Receipt>
+    ),
+    test: lastRun && (
+      <Receipt title={`Last test: ${RUN_STATUS[lastRun.status].label.toLowerCase()}`} note={lastRun.goal}>
+        <Link href={`/app/run/${lastRun.id}`} className="text-sm font-medium text-brand hover:text-brand-hover">
+          {lastRun.status === 'awaiting_approval' ? 'Approve the payment' : 'See what the agent did'}
+        </Link>
+      </Receipt>
+    ),
+  };
+
   const stepBody: Record<SetupStepView['id'], ReactNode> = {
     catalog: merchant.isDemo ? (
       <p className="text-soft">The demo store comes with 6 products.</p>
@@ -100,7 +160,7 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
       <div className="space-y-5">
         <p className="text-soft">
           Agents buy from your product list.{' '}
-          {summary.productCount ? <><span className="font-medium text-ink">{summary.productCount} products imported.</span> Import again any time to replace them.</> : 'Pick whichever is easiest.'}
+          {summary.productCount ? 'To change them, import again. It replaces the list above.' : 'Pick whichever is easiest.'}
         </p>
         {guide?.autoImport && (
           <div className="grid gap-3 sm:grid-cols-2">
@@ -292,9 +352,9 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                     {s.done ? '✓' : i + 1}
                   </span>
                   <span className={`flex-1 font-semibold ${s.done ? 'text-muted' : ''}`}>{s.title}</span>
-                  <span className="text-sm text-muted">{s.done ? 'Done' : open ? '' : 'Open'}</span>
+                  <span className={`text-sm ${s.done ? 'text-success-ink' : 'text-muted'}`}>{s.done ? doneLabel[s.id] : open ? '' : 'Open'}</span>
                 </button>
-                {open && <div className="px-5 pb-6 sm:pl-[4.25rem]">{stepBody[s.id]}</div>}
+                {open && <div className="px-5 pb-6 sm:pl-[4.25rem]">{s.done && receipt[s.id]}{stepBody[s.id]}</div>}
               </li>
             );
           })}
@@ -452,6 +512,18 @@ function CsvImport({ steps, platform, busy, disabled, onImport }: { steps: strin
         <button type="button" onClick={template} className="font-medium text-brand hover:text-brand-hover">Download a template</button>
         <button type="button" onClick={() => setPaste((p) => !p)} className="font-medium text-brand hover:text-brand-hover">{paste ? 'Upload a file instead' : 'Paste CSV text instead'}</button>
       </div>
+    </div>
+  );
+}
+
+function Receipt({ title, note, children }: { title: string; note?: string; children?: ReactNode }) {
+  return (
+    <div className="mb-5 rounded-xl border border-line bg-subtle/50 p-4">
+      <p className="flex items-center gap-2 font-semibold">
+        <span aria-hidden className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-success text-[11px] text-white">✓</span>{title}
+      </p>
+      {note && <p className="mt-1 text-sm text-muted sm:pl-7">{note}</p>}
+      {children && <div className="mt-3 sm:pl-7">{children}</div>}
     </div>
   );
 }

@@ -347,7 +347,7 @@ export function agentGoalFor(s: MerchantRow): string {
 
 export interface StoreSummary {
   id: string; name: string; storeUrl: string; isDemo: boolean; installed: boolean; ownerId: string | null;
-  paypalEmail: string | null; paypalVerified: boolean; installVerified: boolean; productCount: number;
+  paypalEmail: string | null; paypalVerified: boolean; installVerified: boolean; installVerifiedAt: number | null; productCount: number;
   latestScore: number | null; latestScanId: string | null; orders: number; revenue: string; createdAt: number | null;
   setup: SetupStep[]; platform: Platform | null; shopifyConnected: boolean; shopifyShop: string | null;
 }
@@ -358,7 +358,7 @@ export function storeSummary(s: MerchantRow): StoreSummary {
   const o = db.prepare('select count(*) n, coalesce(sum(cast(amount as real)), 0) total from orders where merchant_id = ?').get(s.id) as { n: number; total: number };
   return {
     id: s.id, name: s.name, storeUrl: s.store_url, isDemo: s.owner_id == null, installed: s.installed === 1, ownerId: s.owner_id,
-    paypalEmail: s.paypal_email, paypalVerified: s.paypal_verified_at != null, installVerified: s.install_verified_at != null,
+    paypalEmail: s.paypal_email, paypalVerified: s.paypal_verified_at != null, installVerified: s.install_verified_at != null, installVerifiedAt: s.install_verified_at ?? null,
     productCount: (JSON.parse(s.raw_catalog || '[]') as unknown[]).length,
     latestScore: scan?.score ?? null, latestScanId: scan?.id ?? null, orders: o.n, revenue: o.total.toFixed(2), createdAt: s.created_at,
     setup: setupProgress(s), platform: (s.platform as Platform | null) ?? null, shopifyConnected: !!s.shopify_token, shopifyShop: s.shopify_shop ?? null,
