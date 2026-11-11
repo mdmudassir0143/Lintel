@@ -247,7 +247,7 @@ export default function Landing() {
           <div>
             <h2 className="t-h1">Open to every agent, not just a few.</h2>
             <p className="mt-4 max-w-[520px] text-lg leading-relaxed text-soft">
-              Big platforms open stores to the assistants they partner with. A Lintel store works with any agent that speaks x402. Agent builders add buying in three lines with <span className="font-mono text-[0.9em] text-ink">@lintel/agent</span>.
+              Big platforms open stores to the assistants they partner with. A Lintel store works with any agent that speaks x402. Agent builders add buying in three lines with <span className="font-mono text-[0.9em] text-ink">@lintel-agent/sdk</span>.
             </p>
             <ul className="mt-8 space-y-3 text-[15px]">
               {['Finds the store from its page, no directory needed', 'Reads the catalog with real SKUs, prices and stock', 'Pays only after the person approves in PayPal'].map((t) => (
@@ -258,7 +258,7 @@ export default function Landing() {
           </div>
           <div className="overflow-hidden rounded-2xl bg-night shadow-[var(--shadow-window)]">
             <div className="border-b border-white/10 px-4 py-3 font-mono text-[13px] text-white/55">agent.ts</div>
-            <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-[1.75] text-white/85">{`import { discover, buy } from '@lintel/agent';
+            <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-[1.75] text-white/85">{`import { discover, buy } from '@lintel-agent/sdk';
 
 const store = await discover('https://fernwoodtea.com');
 

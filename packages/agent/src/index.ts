@@ -1,5 +1,5 @@
 /**
- * @lintel/agent — let any AI agent buy from any Lintel store.
+ * @lintel-agent/sdk — let any AI agent buy from any Lintel store.
  *
  *   const store = await discover('https://fernwoodtea.com');
  *   const products = await getCatalog(store);

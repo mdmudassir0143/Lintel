@@ -1,5 +1,5 @@
 {
-  "name": "@lintel/agent",
+  "name": "@lintel-agent/sdk",
   "version": "0.1.0",
   "description": "Let any AI agent buy from any Lintel store: discover, read the catalog, and pay over x402, settled through PayPal with the buyer's approval.",
   "type": "module",

@@ -1,10 +1,10 @@
-# @lintel/agent
+# @lintel-agent/sdk
 
 Let any AI agent buy from any store that runs Lintel, and pay through PayPal with the
 buyer's approval. No dependencies; works in Node 18+, browsers and edge runtimes.
 
 ```ts
-import { discover, getCatalog, buy } from '@lintel/agent';
+import { discover, getCatalog, buy } from '@lintel-agent/sdk';
 
 const store = await discover('https://fernwoodtea.com');      // finds <link rel="agent-manifest">
 const products = await getCatalog(store);                     // SKUs, titles, prices, stock

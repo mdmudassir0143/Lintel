@@ -164,10 +164,10 @@ export default function Docs() {
           </Section>
           <Section id="sdk" title="Agent SDK">
             <p>
-              <C>@lintel/agent</C> lets any AI agent buy from any Lintel store. It finds the store’s manifest, reads the catalog, and runs the
+              <C>@lintel-agent/sdk</C> lets any AI agent buy from any Lintel store. It finds the store’s manifest, reads the catalog, and runs the
               x402 checkout, waiting while the person approves in PayPal. No dependencies; Node 18+, browsers and edge runtimes.
             </p>
-            <Pre>{`import { discover, getCatalog, buy } from '@lintel/agent';
+            <Pre>{`import { discover, getCatalog, buy } from '@lintel-agent/sdk';
 
 const store = await discover('https://fernwoodtea.com');
 const products = await getCatalog(store);

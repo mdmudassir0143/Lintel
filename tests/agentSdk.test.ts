@@ -29,7 +29,7 @@ beforeEach(() => {
   getDb().prepare("update merchants set installed = 1 where id = 'ridgeline'").run();
 });
 
-describe('@lintel/agent', () => {
+describe('@lintel-agent/sdk', () => {
   it('discovers a store from its page and reads the catalog', async () => {
     const { fetchImpl } = world();
     const store = await discover(STORE, { fetch: fetchImpl });
