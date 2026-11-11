@@ -2,22 +2,20 @@ services:
   - type: web
     name: lintel
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
-    # SQLite lives on a persistent disk so accounts, stores and orders survive deploys.
-    disk:
-      name: lintel-data
-      mountPath: /var/data
-      sizeGB: 1
+    # Free plan: no persistent disk, so SQLite resets on each deploy or spin-down.
+    # For persistence switch to plan: starter and add:
+    #   disk: { name: lintel-data, mountPath: /var/data, sizeGB: 1 }  and DB_PATH=/var/data/lintel.db
     envVars:
       - key: NODE_VERSION
         value: "22"
       - key: BROWSER_PROVIDER
         value: kernel
       - key: DB_PATH
-        value: /var/data/lintel.db
+        value: ./data/lintel.db
       - key: APPROVAL_TIMEOUT_MS
         value: "900000"
       - key: PAYPAL_CLIENT_ID
