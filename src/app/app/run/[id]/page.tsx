@@ -3,6 +3,7 @@ import { use, useEffect, useState } from 'react';
 import { AppShell } from '@/components/AppShell';
 import { ButtonLink, Panel, PanelHeader, Pill, Spinner, buttonClass } from '@/components/ui';
 import { RUN_STATUS, type RunStatus } from '@/lib/ui/types';
+import { PayPalMark } from '@/components/brand';
 
 type Step = { idx: number; action: string; detail: any; created_at: number };
 type Run = { id: string; kind: string; goal: string; status: RunStatus; summary: string | null; scan_id: string | null; merchant_id: string | null; live_view_url: string | null; created_at: number };
@@ -130,7 +131,7 @@ export default function RunPage({ params }: { params: Promise<{ id: string }> })
                 <p className="t-h2 mt-1">Approve <span className="num">${approval.amount}</span> in PayPal</p>
                 <p className="mt-1 max-w-[560px] text-[15px] text-muted">Nothing is charged until you approve. Log in with the sandbox buyer account, press Pay, and the agent finishes the purchase.</p>
               </div>
-              <a href={approval.approveUrl} target="_blank" rel="noreferrer" className={buttonClass('paypal', 'lg', 'shrink-0 font-bold')}>Approve in PayPal</a>
+              <a href={approval.approveUrl} target="_blank" rel="noreferrer" className={buttonClass('primary', 'lg', 'shrink-0')}><PayPalMark className="h-4 w-4" /> Approve in PayPal</a>
             </div>
           </Panel>
         )}

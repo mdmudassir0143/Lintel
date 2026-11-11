@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, type ReactNode } from 'react';
 import { SiteNav, SiteFooter } from '@/components/SiteChrome';
-import { Mark } from '@/components/brand';
+import { Mark, PayPalMark } from '@/components/brand';
 import { Button, Pill, Panel, PanelHeader, Spinner } from '@/components/ui';
 import { Beam, LintelScore, CHECK_ORDER } from '@/components/LintelScore';
 import { ROLE_GROUPS, PALETTE } from '@/lib/ui/tokens';
@@ -121,7 +121,7 @@ export default function BrandPage() {
                 <Button variant="dark">Launch app</Button>
                 <Button variant="secondary">Scan again</Button>
                 <Button variant="ghost">Uninstall Lintel</Button>
-                <Button variant="paypal" className="font-bold">Approve in PayPal</Button>
+                <Button><PayPalMark className="h-4 w-4" /> Approve in PayPal</Button>
                 <Button disabled><Spinner /> Installing</Button>
               </div>
             </Panel>

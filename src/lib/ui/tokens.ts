@@ -64,7 +64,7 @@ export const ROLE_GROUPS: { title: string; note: string; roles: Role[] }[] = [
   },
   {
     title: 'PayPal',
-    note: 'PayPal’s own colors, used only on the Approve in PayPal button.',
+    note: 'PayPal’s own colors. Lintel’s Approve in PayPal button uses brand blue with the PayPal mark; these are kept for the merchant’s own PayPal buttons.',
     roles: [
       { name: 'paypal', usage: 'Approve in PayPal button' },
       { name: 'paypal-ink', usage: 'Text on the PayPal button', onDark: true },

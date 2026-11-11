@@ -2,7 +2,12 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { SiteNav, SiteFooter } from '@/components/SiteChrome';
 import { ScanForm, DemoButton } from '@/components/ScanForm';
-import { HeroShot, LostSale } from '@/components/marketing';
+import { HeroShot } from '@/components/marketing';
+import { HeroGateway } from '@/components/motion/HeroGateway';
+import { HeroHeadline } from '@/components/motion/HeroHeadline';
+import { ChatDemo } from '@/components/motion/ChatDemo';
+import { Reveal } from '@/components/motion/Reveal';
+import { PayPalMark } from '@/components/brand';
 import { Beam, CHECK_ORDER } from '@/components/LintelScore';
 import { CHECK_META } from '@/lib/scan/checks';
 import { env } from '@/lib/env';
@@ -44,25 +49,20 @@ export default function Landing() {
         <section id="scan" className="relative scroll-mt-20 overflow-hidden">
           <div className="aurora pointer-events-none absolute inset-0" aria-hidden />
           <div className="grid-fade pointer-events-none absolute inset-0" aria-hidden />
-          <div className="relative mx-auto max-w-[1200px] px-5 pb-20 pt-16 text-center md:px-8 md:pt-24">
-            <Link href="#payments" className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/80 py-1 pl-1 pr-3 text-[13px] text-soft shadow-[var(--shadow-card)] backdrop-blur hover:text-ink">
-              <span className="rounded-full bg-brand-wash px-2 py-0.5 font-semibold text-brand-ink">New</span>
-              <span className="sm:hidden">Agent checkout, paid through PayPal</span>
-              <span className="hidden sm:inline">Agent checkout over x402, paid through PayPal</span>
-            </Link>
-            <h1 className="t-display mx-auto mt-7 max-w-[1140px]">Your next customer is an AI&nbsp;agent. <span className="whitespace-nowrap md:block">Let it in.</span></h1>
-            <p className="mx-auto mt-6 max-w-[620px] text-lg leading-relaxed text-soft md:text-xl">
-              Lintel finds what stops AI shopping agents at your store, fixes it with one script tag, and settles every agent
-              purchase through PayPal, with the buyer’s approval.
-            </p>
-            <div className="mt-9 flex flex-col items-center gap-3">
-              <ScanForm align="center" />
-              <DemoButton variant="link" size="md" />
+          <div className="relative mx-auto grid max-w-[1200px] items-center gap-14 px-5 pb-20 pt-14 md:px-8 lg:grid-cols-[1.1fr_1fr] lg:gap-10 lg:pb-28 lg:pt-20 [&>*]:min-w-0">
+            <div>
+              <HeroHeadline className="t-display !text-[clamp(2.5rem,1.3rem+3.1vw,3.9rem)]" lines={['Your next customer', 'is an AI agent.', 'Let it in.']} />
+              <p data-fade className="mt-6 max-w-[540px] text-lg leading-relaxed text-soft md:text-xl">
+                AI assistants now shop for people. Lintel finds what stops them at your store, fixes it with one script tag, and gets
+                you paid through PayPal, with the buyer’s approval.
+              </p>
+              <div data-fade className="mt-9"><ScanForm /></div>
+              <div data-fade className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+                <DemoButton variant="link" size="md" />
+                <span className="flex items-center gap-2 text-[14px] text-muted"><PayPalMark className="h-3.5 w-3.5 text-[#003087]" /> Settled through PayPal</span>
+              </div>
             </div>
-            <div className="relative mx-auto mt-16 max-w-[1080px] text-left">
-              <div className="brand-gradient pointer-events-none absolute -inset-x-10 top-10 bottom-0 rounded-[40px] opacity-[.18] blur-3xl" aria-hidden />
-              <div className="relative"><HeroShot /></div>
-            </div>
+            <HeroGateway />
           </div>
         </section>
 
@@ -77,7 +77,7 @@ export default function Landing() {
         </section>
 
         {/* Why now + the lost sale */}
-        <section className="mx-auto grid max-w-[1200px] items-center gap-14 px-5 py-24 md:px-8 lg:grid-cols-2 lg:py-32 [&>*]:min-w-0">
+        <section className="mx-auto grid max-w-[1200px] items-center gap-14 px-5 py-24 md:px-8 lg:grid-cols-[1fr_1.1fr] lg:py-32 [&>*]:min-w-0">
           <div>
             <h2 className="t-h1 max-w-[520px]">Shoppers are handing checkout to AI.</h2>
             <p className="mt-5 max-w-[500px] text-lg leading-relaxed text-soft">
@@ -91,7 +91,7 @@ export default function Landing() {
               </p>
             </div>
           </div>
-          <LostSale />
+          <ChatDemo />
         </section>
 
         {/* Problem */}
@@ -163,7 +163,7 @@ export default function Landing() {
                 <div className="rounded-xl bg-surface p-4 shadow-[var(--shadow-card)]">
                   <p className="text-[12.5px] font-medium text-warning">Waiting for approval</p>
                   <p className="t-stat mt-1 text-[26px]">$22.00</p>
-                  <span className="mt-3 inline-flex rounded-lg bg-paypal px-3 py-1.5 text-[12.5px] font-bold text-paypal-ink">Approve in PayPal</span>
+                  <span className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[12.5px] font-semibold text-white shadow-[0_6px_16px_-6px_rgb(45_45_241/.55)]"><PayPalMark className="h-3.5 w-3.5" /> Approve in PayPal</span>
                 </div>
                 <div className="rounded-xl bg-surface p-4 shadow-[var(--shadow-card)]">
                   <p className="text-[12.5px] font-medium text-success-ink">Paid through PayPal</p>
@@ -175,14 +175,26 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* Product shot */}
+        <section className="mx-auto max-w-[1200px] px-5 pb-24 md:px-8 lg:pb-32">
+          <div className="mx-auto max-w-[720px] text-center">
+            <h2 className="t-h1">Every agent visit, on the record.</h2>
+            <p className="mt-4 text-lg leading-relaxed text-soft">See each step an agent takes in your store, the moment it asks to pay, and the PayPal capture when it does.</p>
+          </div>
+          <Reveal className="relative mx-auto mt-14 max-w-[1080px]">
+            <div className="brand-gradient pointer-events-none absolute inset-x-0 md:-inset-x-10 top-10 bottom-0 rounded-[40px] opacity-[.16] blur-3xl" aria-hidden />
+            <div className="relative"><HeroShot /></div>
+          </Reveal>
+        </section>
+
         {/* Payments */}
-        <section id="payments" className="night-glow scroll-mt-16 text-white">
+        <section id="payments" className="brand-light scroll-mt-16 border-y border-line">
           <div className="mx-auto grid max-w-[1200px] gap-14 px-5 py-24 md:px-8 lg:grid-cols-[1fr_1.05fr] lg:py-32 [&>*]:min-w-0">
             <div>
               <h2 className="t-h1">An agent checkout your customers can trust.</h2>
-              <p className="mt-5 max-w-[520px] text-lg leading-relaxed text-white/70">
-                Lintel adds an <span className="font-semibold text-white">x402</span> checkout to your store, the open standard for paying over HTTP.
-                Its <span className="font-mono text-[0.9em] text-accent">paypal-order</span> scheme settles in PayPal, so there are no wallets and no crypto.
+              <p className="mt-5 max-w-[520px] text-lg leading-relaxed text-soft">
+                Lintel adds an <span className="font-semibold text-ink">x402</span> checkout to your store, the open standard for paying over HTTP.
+                Its <span className="rounded-md bg-brand-wash px-1.5 py-0.5 font-mono text-[0.85em] text-brand-ink">paypal-order</span> scheme settles in PayPal, so there are no wallets and no crypto.
               </p>
               <ol className="mt-10 space-y-6">
                 {[
@@ -192,21 +204,21 @@ export default function Landing() {
                   ['Lintel verifies, then captures', 'Same order, same amount, same cart, or no capture. Replays never charge twice.'],
                 ].map(([t, d], i) => (
                   <li key={t} className="grid grid-cols-[2.25rem_1fr] gap-3">
-                    <span className="num grid h-8 w-8 place-items-center rounded-full bg-white/10 text-sm font-semibold ring-1 ring-white/15">{i + 1}</span>
-                    <div><p className="font-semibold">{t}</p><p className="mt-0.5 text-[15px] text-white/60">{d}</p></div>
+                    <span className="num grid h-8 w-8 place-items-center rounded-full bg-surface text-sm font-semibold text-brand shadow-[var(--shadow-card)]">{i + 1}</span>
+                    <div><p className="font-semibold">{t}</p><p className="mt-0.5 text-[15px] text-muted">{d}</p></div>
                   </li>
                 ))}
               </ol>
             </div>
             <div className="self-center">
-              <div className="overflow-hidden rounded-2xl bg-night-raised/80 ring-1 ring-white/10 backdrop-blur">
+              <div className="overflow-hidden rounded-2xl bg-night shadow-[var(--shadow-window)]">
                 <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-[13px] text-white/55">
                   <span className="font-mono">POST /m/ridgeline/agent/checkout</span>
-                  <span className="rounded-md bg-paypal/15 px-2 py-0.5 font-mono text-[12px] text-paypal">402</span>
+                  <span className="rounded-md bg-white/10 px-2 py-0.5 font-mono text-[12px] text-brand-bright">402</span>
                 </div>
                 <pre className="overflow-x-auto p-5 font-mono text-[12.5px] leading-[1.75] text-white/80">{RESPONSE_402}</pre>
               </div>
-              <Link href="/docs#scheme" className="mt-5 inline-flex text-sm font-medium text-brand-bright hover:text-white">Read the scheme in the docs</Link>
+              <Link href="/docs#scheme" className="mt-5 inline-flex text-sm font-medium text-brand hover:text-brand-hover">Read the scheme in the docs</Link>
             </div>
           </div>
         </section>
@@ -259,9 +271,9 @@ export default function Landing() {
 
         {/* Final CTA */}
         <section className="mx-auto max-w-[1200px] px-5 py-24 md:px-8">
-          <div className="night-glow relative overflow-hidden rounded-3xl px-6 py-16 text-center text-white sm:px-12 md:py-20">
+          <div className="cta-glow relative overflow-hidden rounded-3xl px-6 py-16 text-center text-white sm:px-12 md:py-20">
             <h2 className="t-h1 mx-auto max-w-[720px]">See what an AI agent sees at your store.</h2>
-            <p className="mx-auto mt-4 max-w-[520px] text-lg text-white/70">Get your score in seconds, then watch a real agent try to buy.</p>
+            <p className="mx-auto mt-4 max-w-[520px] text-lg text-white/80">Get your score in seconds, then watch a real agent try to buy.</p>
             <div className="mt-9 flex flex-col items-center gap-3">
               <ScanForm tone="dark" align="center" />
               <DemoButton variant="onDark" size="md" />

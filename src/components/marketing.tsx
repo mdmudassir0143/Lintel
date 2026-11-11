@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Beam, CHECK_ORDER } from './LintelScore';
-import { Mark } from './brand';
+import { Mark, PayPalMark } from './brand';
 
 const W = [30, 15, 10, 10, 10, 10, 5, 5, 5];
 const allPass = CHECK_ORDER.map((id, i) => ({ id, weight: W[i], status: 'pass' as const, title: id }));
@@ -65,42 +65,11 @@ export function HeroShot() {
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-xl border border-dashed border-line-strong p-3.5 text-[12.5px] text-muted">
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-paypal text-[11px] font-bold text-paypal-ink">P</span>
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand text-white"><PayPalMark className="h-3.5 w-3.5" /></span>
             The buyer approved in PayPal. The agent never saw a card or a password.
           </div>
         </div>
       </div>
     </WindowFrame>
-  );
-}
-
-/** The story: a shopper asks an assistant to buy, and the store loses the sale without knowing. */
-export function LostSale() {
-  return (
-    <WindowFrame title="AI assistant">
-      <div className="space-y-4 p-5 sm:p-6">
-        <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-ink px-4 py-2.5 text-[14.5px] text-white">
-          Buy me a 12 oz bag of Ethiopian coffee, under $25.
-        </div>
-        <div className="max-w-[92%] space-y-3 text-[14.5px] leading-relaxed text-soft">
-          <p>I checked three roasters that carry it:</p>
-          <ul className="space-y-2">
-            <Shop name="Ridgeline Coffee Roasters" note="Couldn’t read prices, and checkout needs an account" bad />
-            <Shop name="Northside Roastery" note="Bots blocked by robots.txt" bad />
-            <Shop name="A larger marketplace" note="Found it for $23.50, guest checkout" />
-          </ul>
-          <p>I bought it from the marketplace. It arrives Thursday.</p>
-        </div>
-      </div>
-    </WindowFrame>
-  );
-}
-
-function Shop({ name, note, bad }: { name: string; note: string; bad?: boolean }) {
-  return (
-    <li className={`flex items-start gap-3 rounded-xl border px-3.5 py-2.5 ${bad ? 'border-danger/15 bg-danger-wash/60' : 'border-success/20 bg-success-wash/70'}`}>
-      <span aria-hidden className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white ${bad ? 'bg-danger' : 'bg-success'}`}>{bad ? '×' : '✓'}</span>
-      <span className="min-w-0"><span className="block text-[14px] font-semibold text-ink">{name}</span><span className="text-[13px] text-muted">{note}</span></span>
-    </li>
   );
 }
