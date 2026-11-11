@@ -6,6 +6,7 @@ import { runStaticChecks, liveAgentCheck, type CheckResult, type LiveOutcome } f
 import { score } from './score';
 import { writeFindings } from './analyze';
 import { detectPlatform } from '../stores';
+import { trustedHosts } from '../net';
 
 export interface ScanRow {
   id: string;
@@ -36,7 +37,7 @@ export function createScan(url: string, owner: ScanOwner = {}): string {
 export async function completeScan(id: string, url: string): Promise<void> {
   const db = getDb();
   try {
-    const snap = await fetchSite(url, { allowHosts: [new URL(env.publicBaseUrl).host] });
+    const snap = await fetchSite(url, { allowHosts: trustedHosts() });
     const checks = [...runStaticChecks(snap), liveAgentCheck('not_run', '')];
     // Remember which store builder the merchant uses, so setup can show the right steps.
     db.prepare(`update merchants set platform = ? where platform is null and id = (select merchant_id from scans where id = ?)`).run(detectPlatform(snap.html ?? ''), id);

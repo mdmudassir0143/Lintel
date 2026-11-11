@@ -1,6 +1,6 @@
 import { requireStore } from '@/lib/server/session';
 import { importShopifyCatalog, importJsonLdCatalog, importWooCommerceCatalog, crawlSitemapCatalog, parseCatalogCsv, setCatalog, getStore, StoreError } from '@/lib/stores';
-import { guardedFetch, UnsafeUrlError } from '@/lib/net';
+import { guardedFetch, UnsafeUrlError, trustedHosts } from '@/lib/net';
 import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
@@ -18,7 +18,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     else if (b.source === 'woocommerce') products = await importWooCommerceCatalog(g.store.store_url);
     else if (b.source === 'sitemap') products = await crawlSitemapCatalog(g.store.store_url);
     else if (b.source === 'page') {
-      const r = await guardedFetch(g.store.store_url, {}, { allowHosts: [new URL(env.publicBaseUrl).host] });
+      const r = await guardedFetch(g.store.store_url, {}, { allowHosts: trustedHosts() });
       products = importJsonLdCatalog(await r.text());
       if (!products.length) throw new StoreError('No product data found on your homepage. Try Shopify import or paste a CSV.');
     } else if (b.source === 'csv') products = parseCatalogCsv(String(b.csv ?? ''));

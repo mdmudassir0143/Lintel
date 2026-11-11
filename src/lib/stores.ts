@@ -7,7 +7,7 @@ import { getDb } from './db';
 import type { MerchantRow } from './catalog';
 import type { Product } from './ridgelineData';
 import type { User } from './auth';
-import { guardedFetch } from './net';
+import { guardedFetch, trustedHosts } from './net';
 import { env } from './env';
 
 export const DEMO_STORE_ID = 'ridgeline';
@@ -188,7 +188,7 @@ export function parseCatalogCsv(text: string): Product[] {
 }
 
 type FetchLike = (url: string, init?: RequestInit) => Promise<Response>;
-const ownHosts = () => [new URL(env.publicBaseUrl).host];
+const ownHosts = () => trustedHosts();
 const defaultFetch: FetchLike = (url, init) => guardedFetch(url, init, { allowHosts: ownHosts() });
 
 /** Shopify stores publish their catalog at /products.json. */
@@ -308,6 +308,9 @@ export async function verifyInstall(id: string, fetchImpl: FetchLike = defaultFe
     html = await r.text();
   } catch {
     return { ok: false, message: `We couldn’t load ${s.store_url}. Check that it’s online.` };
+  }
+  if (/<form[^>]+action=["'][^"']*\/password["']/i.test(html) || /<input[^>]+type=["']password["']/i.test(html)) {
+    return { ok: false, message: 'Your store is password-protected, so we can’t see its pages. Shopify development stores always are; remove the password (Online Store, Preferences) on a live store, or test with a store that’s open to visitors.' };
   }
   const tags = [...html.matchAll(/<script\b[^>]*>/gi)].map((m) => m[0]);
   const found = tags.some((t) => /lintel\.js/.test(t) && new RegExp(`data-merchant=["']${id}["']`).test(t));

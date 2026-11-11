@@ -1,0 +1,8 @@
+[
+  { "handle": "sencha-kyoto", "sku": "FW-SEN-50", "title": "Kyoto Sencha, 50 g tin", "description": "Bright, grassy Japanese green tea from Uji. Steep at 75°C for one minute.", "price": "14.00", "inStock": true },
+  { "handle": "tieguanyin-oolong", "sku": "FW-OOL-50", "title": "Tieguanyin Oolong, 50 g", "description": "Floral, creamy Anxi oolong, lightly roasted. Good for many short steeps.", "price": "18.50", "inStock": true },
+  { "handle": "assam-breakfast", "sku": "FW-ASM-100", "title": "Assam Breakfast, 100 g", "description": "Malty, strong black tea that takes milk well.", "price": "11.00", "inStock": true },
+  { "handle": "earl-grey-bergamot", "sku": "FW-EGB-100", "title": "Earl Grey with real bergamot, 100 g", "description": "Ceylon black tea with cold-pressed Calabrian bergamot oil.", "price": "13.00", "inStock": true },
+  { "handle": "chamomile-flowers", "sku": "FW-CHA-40", "title": "Whole Chamomile Flowers, 40 g", "description": "Caffeine-free Egyptian chamomile. Honeyed and calming.", "price": "9.50", "inStock": false },
+  { "handle": "cast-iron-teapot", "sku": "FW-POT-08", "title": "Cast Iron Teapot, 0.8 L", "description": "Enamelled Tetsubin with a steel infuser.", "price": "48.00", "inStock": true }
+]

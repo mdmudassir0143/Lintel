@@ -1,7 +1,7 @@
 import { generateText, tool, stepCountIs, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import { resilientModel, compactMessages } from '../llm';
-import { guardedFetch } from '../net';
+import { guardedFetch, trustedHosts } from '../net';
 import { env } from '../env';
 import type { PayPalApi } from '../paypal/client';
 import type { LiveOutcome } from '../scan/checks';
@@ -36,9 +36,8 @@ function truncate(s: string, n: number) {
 export async function runHeadlessAgent(args: { runId: string; url: string; goal: string; deps: AgentDeps }): Promise<LiveOutcome> {
   const { runId, deps } = args;
   // Default: public addresses only (plus Lintel itself), 10s timeout, 2MB cap per response.
-  const ownHost = new URL(env.publicBaseUrl).host;
   const doFetch: typeof fetch =
-    deps.fetchImpl ?? (((u: string | URL | Request, init?: RequestInit) => guardedFetch(String(u), init, { allowHosts: [ownHost] })) as typeof fetch);
+    deps.fetchImpl ?? (((u: string | URL | Request, init?: RequestInit) => guardedFetch(String(u), init, { allowHosts: trustedHosts() })) as typeof fetch);
   const state = {
     manifest: null as any,
     foundProduct: false,

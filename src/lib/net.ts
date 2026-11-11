@@ -6,6 +6,19 @@
 import dns from 'node:dns/promises';
 import net from 'node:net';
 
+import { env } from './env';
+
+/**
+ * Hosts outbound fetches may reach even though they look private: Lintel itself, and in local
+ * development the merchant test shops listed in DEV_STORE_HOSTS. Never extended in production.
+ */
+export function trustedHosts(): string[] {
+  const own = new URL(env.publicBaseUrl).host;
+  if (process.env.NODE_ENV === 'production') return [own];
+  const dev = (process.env.DEV_STORE_HOSTS ?? '').split(',').map((h) => h.trim()).filter(Boolean);
+  return [own, ...dev];
+}
+
 export class UnsafeUrlError extends Error {
   constructor(message = 'That address is not publicly reachable.') {
     super(message);

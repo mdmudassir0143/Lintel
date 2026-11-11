@@ -1,7 +1,7 @@
 import { requireUser } from '@/lib/server/session';
 import { createStore, listStoresFor, storeSummary, StoreError } from '@/lib/stores';
 import { startScan } from '@/lib/scan/runScan';
-import { assertPublicUrl, UnsafeUrlError } from '@/lib/net';
+import { assertPublicUrl, UnsafeUrlError, trustedHosts } from '@/lib/net';
 import { normalizeStoreUrl } from '@/lib/stores';
 import { env } from '@/lib/env';
 
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   if (u instanceof Response) return u;
   const b = await req.json().catch(() => ({}));
   try {
-    await assertPublicUrl(normalizeStoreUrl(String(b.url ?? '')), { allowHosts: [new URL(env.publicBaseUrl).host] });
+    await assertPublicUrl(normalizeStoreUrl(String(b.url ?? '')), { allowHosts: trustedHosts() });
     const s = createStore(u, { name: String(b.name ?? ''), url: String(b.url ?? ''), paypalEmail: b.paypalEmail ? String(b.paypalEmail) : undefined });
     const scanId = startScan(s.store_url, { merchantId: s.id, userId: u.id });
     return Response.json({ store: storeSummary(s), scanId });

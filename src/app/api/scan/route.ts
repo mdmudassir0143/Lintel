@@ -1,5 +1,6 @@
 import { startScan } from '@/lib/scan/runScan';
 import { env } from '@/lib/env';
+import { trustedHosts } from '@/lib/net';
 import { currentUser } from '@/lib/server/session';
 import { getStore, canAccessStore } from '@/lib/stores';
 
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
   } catch {
     return Response.json({ error: 'Please enter a valid store URL.' }, { status: 400 });
   }
-  const own = new URL(env.publicBaseUrl).host === u.host;
+  const own = trustedHosts().includes(u.host);
   if (!own && PRIVATE.test(u.hostname)) return Response.json({ error: 'That address is not publicly reachable.' }, { status: 400 });
   const user = await currentUser();
   const store = merchantId ? getStore(String(merchantId)) : undefined;

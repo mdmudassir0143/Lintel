@@ -1,7 +1,7 @@
 import { startRun } from '@/lib/agents/runner';
 import { requireUser, requireStore } from '@/lib/server/session';
 import { agentGoalFor } from '@/lib/stores';
-import { assertPublicUrl, UnsafeUrlError } from '@/lib/net';
+import { assertPublicUrl, UnsafeUrlError, trustedHosts } from '@/lib/net';
 import { env } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   const g = await requireStore(String(b.merchantId));
   if (g instanceof Response) return g;
   try {
-    await assertPublicUrl(g.store.store_url, { allowHosts: [new URL(env.publicBaseUrl).host] });
+    await assertPublicUrl(g.store.store_url, { allowHosts: trustedHosts() });
   } catch (e) {
     if (e instanceof UnsafeUrlError) return Response.json({ error: 'This store’s address isn’t publicly reachable.' }, { status: 400 });
     throw e;
