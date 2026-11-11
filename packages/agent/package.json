@@ -1,0 +1,15 @@
+{
+  "name": "@lintel/agent",
+  "version": "0.1.0",
+  "description": "Let any AI agent buy from any Lintel store: discover, read the catalog, and pay over x402, settled through PayPal with the buyer's approval.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "README.md"],
+  "sideEffects": false,
+  "engines": { "node": ">=18" },
+  "scripts": { "build": "tsc -p tsconfig.json", "prepublishOnly": "npm run build" },
+  "keywords": ["ai-agents", "agentic-commerce", "x402", "paypal", "webmcp", "checkout"],
+  "license": "MIT"
+}

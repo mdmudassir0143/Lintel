@@ -349,7 +349,7 @@ export interface StoreSummary {
   id: string; name: string; storeUrl: string; isDemo: boolean; installed: boolean; ownerId: string | null;
   paypalEmail: string | null; paypalVerified: boolean; installVerified: boolean; productCount: number;
   latestScore: number | null; latestScanId: string | null; orders: number; revenue: string; createdAt: number | null;
-  setup: SetupStep[]; platform: Platform | null; shopifyConnected: boolean;
+  setup: SetupStep[]; platform: Platform | null; shopifyConnected: boolean; shopifyShop: string | null;
 }
 
 export function storeSummary(s: MerchantRow): StoreSummary {
@@ -361,6 +361,6 @@ export function storeSummary(s: MerchantRow): StoreSummary {
     paypalEmail: s.paypal_email, paypalVerified: s.paypal_verified_at != null, installVerified: s.install_verified_at != null,
     productCount: (JSON.parse(s.raw_catalog || '[]') as unknown[]).length,
     latestScore: scan?.score ?? null, latestScanId: scan?.id ?? null, orders: o.n, revenue: o.total.toFixed(2), createdAt: s.created_at,
-    setup: setupProgress(s), platform: (s.platform as Platform | null) ?? null, shopifyConnected: !!s.shopify_token,
+    setup: setupProgress(s), platform: (s.platform as Platform | null) ?? null, shopifyConnected: !!s.shopify_token, shopifyShop: s.shopify_shop ?? null,
   };
 }

@@ -10,6 +10,7 @@ export function SiteNav() {
         <nav className="hidden items-center gap-8 text-[15px] text-soft md:flex">
           <Link href="/#product" className="hover:text-ink">Product</Link>
           <Link href="/#payments" className="hover:text-ink">Payments</Link>
+          <Link href="/#agents" className="hover:text-ink">For agents</Link>
           <Link href="/docs" className="hover:text-ink">Docs</Link>
           <Link href="/#faq" className="hover:text-ink">FAQ</Link>
         </nav>
@@ -31,7 +32,7 @@ export function SiteFooter() {
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">Keeps the door open for AI shoppers, and settles what they buy through PayPal.</p>
         </div>
         <FooterCol title="Product" links={[['How it works', '/#how'], ['Payments', '/#payments'], ['The nine checks', '/#checks'], ['Log in', '/login'], ['Create an account', '/signup']]} />
-        <FooterCol title="Developers" links={[['Docs', '/docs'], ['x402 scheme', '/docs#scheme'], ['lintel.js tools', '/docs#tools'], ['Brand and design system', '/brand']]} />
+        <FooterCol title="Developers" links={[['Docs', '/docs'], ['x402 scheme', '/docs#scheme'], ['lintel.js tools', '/docs#tools'], ['Agent SDK', '/docs#sdk'], ['Brand and design system', '/brand']]} />
         <FooterCol title="Try it" links={[['Demo store', '/store/ridgeline'], ['Get started', '/signup']]} />
       </div>
       <div className="mx-auto flex max-w-[1200px] items-center justify-between border-t border-line px-5 py-5 text-[13px] text-muted md:px-8">

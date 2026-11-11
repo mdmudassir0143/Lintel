@@ -9,3 +9,5 @@ lintel.db*
 *.tsbuildinfo
 next-env.d.ts
 test-results/
+
+packages/agent/dist

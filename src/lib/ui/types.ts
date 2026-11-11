@@ -16,7 +16,7 @@ export type StoreCard = {
   id: string; name: string; storeUrl: string; isDemo: boolean; installed: boolean; ownerId: string | null;
   paypalEmail: string | null; paypalVerified: boolean; installVerified: boolean; productCount: number;
   latestScore: number | null; latestScanId: string | null; orders: number; revenue: string; createdAt: number | null;
-  setup: SetupStepView[]; platform: string | null; shopifyConnected: boolean;
+  setup: SetupStepView[]; platform: string | null; shopifyConnected: boolean; shopifyShop: string | null;
 };
 
 export const RUN_STATUS: Record<RunStatus, { label: string; tone: 'live' | 'wait' | 'pass' | 'fail' }> = {

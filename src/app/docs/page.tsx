@@ -13,6 +13,7 @@ const SECTIONS = [
   ['scheme', 'Checkout: x402 over PayPal'],
   ['errors', 'Errors'],
   ['tools', 'lintel.js tools'],
+  ['sdk', 'Agent SDK'],
 ] as const;
 
 export default function Docs() {
@@ -160,6 +161,25 @@ export default function Docs() {
                 </div>
               ))}
             </dl>
+          </Section>
+          <Section id="sdk" title="Agent SDK">
+            <p>
+              <C>@lintel/agent</C> lets any AI agent buy from any Lintel store. It finds the store’s manifest, reads the catalog, and runs the
+              x402 checkout, waiting while the person approves in PayPal. No dependencies; Node 18+, browsers and edge runtimes.
+            </p>
+            <Pre>{`import { discover, getCatalog, buy } from '@lintel/agent';
+
+const store = await discover('https://fernwoodtea.com');
+const products = await getCatalog(store);
+
+const receipt = await buy(store, [{ sku: 'FW-SEN-50', qty: 1 }], {
+  onApprovalRequired: ({ approveUrl, amount }) => {
+    // Show the person this link. Nothing is charged until they approve.
+  },
+  timeoutMs: 15 * 60_000,
+});
+// receipt.captureId is the PayPal capture`}</Pre>
+            <p>Failures are <C>LintelError</C>s with a <C>code</C>: <C>no_manifest</C>, <C>bad_manifest</C>, <C>unsupported_scheme</C>, <C>approval_timeout</C>, <C>store_error</C> or <C>network</C>.</p>
           </Section>
         </article>
       </div>

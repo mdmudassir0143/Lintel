@@ -242,12 +242,29 @@ export default function StorePage({ params }: { params: Promise<{ id: string }> 
                 </button>
               ))}
             </div>
+            {summary.platform === 'shopify' && (
+              <div className="mt-4 rounded-xl border border-brand/20 bg-brand-wash/60 p-4">
+                <p className="font-semibold">On Shopify? Turn on Shopify’s Agentic Storefronts first</p>
+                <p className="mt-1 max-w-[680px] text-sm leading-relaxed text-soft">
+                  Shopify can list your products in ChatGPT, Copilot and other assistants it partners with, with checkout handled by Shopify.
+                  Lintel adds what that doesn’t: your readiness score, testing with a real agent, and a PayPal checkout any agent can use.
+                </p>
+                {summary.shopifyShop ? (
+                  <a href={`https://admin.shopify.com/store/${summary.shopifyShop.replace('.myshopify.com', '')}/apps/agentic`} target="_blank" rel="noreferrer"
+                    className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:text-brand-hover">
+                    <ShopifyMark className="h-4 w-4" /> Open Agentic Storefronts in Shopify
+                  </a>
+                ) : (
+                  <p className="mt-2 text-sm text-muted">In Shopify admin, open Sales channels, then Agentic.</p>
+                )}
+              </div>
+            )}
             {canShopify && (
               <form action="/api/auth/shopify" method="get" className="mt-4 flex flex-col gap-3 rounded-xl border border-line-strong bg-subtle p-4 sm:flex-row sm:items-center">
                 <ShopifyMark className="h-7 w-7 shrink-0 text-[#5e8e3e]" />
                 <div className="flex-1">
-                  <p className="font-semibold">Connect with Shopify</p>
-                  <p className="text-sm text-muted">One approval imports your products and adds Lintel to your storefront. No code.</p>
+                  <p className="font-semibold">Import from Shopify in one step</p>
+                  <p className="text-sm text-muted">One approval imports your products and adds Lintel’s agent checkout to your storefront.</p>
                 </div>
                 <input type="hidden" name="store" value={id} />
                 <input name="shop" required placeholder="your-store.myshopify.com" aria-label="Shopify store address" className={`${input} sm:w-64`} />

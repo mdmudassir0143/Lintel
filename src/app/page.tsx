@@ -51,8 +51,8 @@ export default function Landing() {
             <div>
               <HeroHeadline className="t-display !text-[clamp(2.5rem,1.3rem+3.1vw,3.9rem)]" lines={['Your next customer', 'is an AI agent.', 'Let it in.']} />
               <p data-fade className="mt-6 max-w-[540px] text-lg leading-relaxed text-soft md:text-xl">
-                AI assistants now shop for people. Lintel finds what stops them at your store, fixes it with one script tag, and gets
-                you paid through PayPal, with the buyer’s approval.
+                AI assistants now shop for people. Lintel makes any store buyable by any AI agent, on WooCommerce, Wix,
+                Squarespace, Webflow or your own code, and gets you paid through PayPal, with the buyer’s approval.
               </p>
               <div data-fade className="mt-9"><ScanForm /></div>
               <div data-fade className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
@@ -67,9 +67,9 @@ export default function Landing() {
         {/* Standards */}
         <section className="border-y border-line bg-subtle">
           <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-4 px-5 py-7 text-center md:flex-row md:justify-between md:px-8 md:text-left">
-            <p className="text-sm text-muted">Built on open standards, settled by PayPal</p>
+            <p className="text-sm text-muted">For the stores AI platforms don’t cover</p>
             <ul className="flex flex-wrap items-center justify-center gap-x-9 gap-y-2 text-[17px] font-semibold tracking-tight text-ink/55">
-              <li>x402</li><li>WebMCP</li><li>schema.org</li><li>PayPal Orders v2</li>
+              <li>WooCommerce</li><li>Wix</li><li>Squarespace</li><li>Webflow</li><li>BigCommerce</li><li>Custom stores</li>
             </ul>
           </div>
         </section>
@@ -242,6 +242,33 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* Agent builders */}
+        <section id="agents" className="mx-auto grid max-w-[1200px] scroll-mt-16 items-center gap-12 px-5 py-24 md:px-8 lg:grid-cols-2 lg:py-28 [&>*]:min-w-0">
+          <div>
+            <h2 className="t-h1">Open to every agent, not just a few.</h2>
+            <p className="mt-4 max-w-[520px] text-lg leading-relaxed text-soft">
+              Big platforms open stores to the assistants they partner with. A Lintel store works with any agent that speaks x402. Agent builders add buying in three lines with <span className="font-mono text-[0.9em] text-ink">@lintel/agent</span>.
+            </p>
+            <ul className="mt-8 space-y-3 text-[15px]">
+              {['Finds the store from its page, no directory needed', 'Reads the catalog with real SKUs, prices and stock', 'Pays only after the person approves in PayPal'].map((t) => (
+                <li key={t} className="flex gap-3"><span aria-hidden className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand text-[11px] text-white">✓</span>{t}</li>
+              ))}
+            </ul>
+            <Link href="/docs#sdk" className="mt-8 inline-flex text-sm font-medium text-brand hover:text-brand-hover">Read the SDK docs</Link>
+          </div>
+          <div className="overflow-hidden rounded-2xl bg-night shadow-[var(--shadow-window)]">
+            <div className="border-b border-white/10 px-4 py-3 font-mono text-[13px] text-white/55">agent.ts</div>
+            <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-[1.75] text-white/85">{`import { discover, buy } from '@lintel/agent';
+
+const store = await discover('https://fernwoodtea.com');
+
+const receipt = await buy(store, [{ sku: 'FW-SEN-50', qty: 1 }], {
+  onApprovalRequired: ({ approveUrl, amount }) =>
+    ask(\`Approve $\${amount} in PayPal: \${approveUrl}\`),
+});`}</pre>
+          </div>
+        </section>
+
         {/* FAQ */}
         <section id="faq" className="border-t border-line bg-subtle">
           <div className="mx-auto grid max-w-[1200px] scroll-mt-16 gap-10 px-5 py-24 md:px-8 lg:grid-cols-[1fr_1.6fr] lg:py-28">
@@ -252,6 +279,7 @@ export default function Landing() {
                 ['Where does the money go?', 'Straight to your PayPal business account, like any other PayPal sale. Lintel never holds funds.'],
                 ['Do I have to change my checkout?', 'No. Your human checkout keeps working. Lintel adds a second door for agents next to it.'],
                 ['Which agents can use it?', 'Browser agents use the WebMCP tools on your pages. API agents read your agent manifest and pay through the x402 checkout. Agents that click around do better too, because the walls are gone.'],
+                ['I’m on Shopify. Do I need Lintel?', 'Turn on Shopify’s Agentic Storefronts first: it lists your products in ChatGPT, Copilot and other assistants Shopify partners with. Lintel adds what it doesn’t: a readiness score, a real agent test, and a PayPal checkout that any agent can use, not only partnered assistants.'],
                 ['What does it cost?', 'Lintel is free during the preview. Payments run in the PayPal sandbox until launch.'],
               ].map(([q, a]) => (
                 <details key={q} className="group py-5">
