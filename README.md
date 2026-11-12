@@ -117,7 +117,7 @@ Both are optional and appear only when their keys are set.
 
 ### Data
 
-SQLite with WAL. On Render, `render.yaml` mounts a 1 GB persistent disk at `/var/data` and points `DB_PATH` there, so accounts, stores and orders survive deploys. `/api/health` checks the database.
+SQLite with WAL. The demo runs on Render's free plan, which has no persistent disk, so the database resets on each deploy or spin-down and the demo store is reseeded on boot. For persistence, switch to a paid plan and mount a disk (see the comment in `render.yaml`). `/api/health` checks the database.
 
 ## Run locally
 
@@ -128,14 +128,14 @@ npm install
 npx playwright install chromium        # local browser for the browser agent
 cp .env.example .env                   # fill in PAYPAL_CLIENT_ID/SECRET, GROQ_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY
 npx dotenv -e .env -- npm run dev      # http://localhost:3000
-npm test                               # 100 tests (one live PayPal sandbox test runs when PAYPAL_CLIENT_ID is set)
+npm test                               # 169 tests (one live PayPal sandbox test runs when PAYPAL_CLIENT_ID is set)
 ```
 
 With `BROWSER_PROVIDER=local` (the default), the browser agent runs a local headless Chromium. `BROWSER_PROVIDER=kernel` uses Kernel cloud browsers; those need a public URL, because they cannot reach `localhost`.
 
 ## Deploy (Render)
 
-`render.yaml` defines one web service. Create a Blueprint from this repo, then fill in the secret environment variables. `PUBLIC_BASE_URL` defaults to Render's `RENDER_EXTERNAL_URL`. SQLite on the instance disk is reseeded on boot, which is fine for the demo.
+`render.yaml` defines two web services on the free plan: `lintel` (the app) and `fernwood-tea` (the demo shop in `demo-shop/`). Create a Blueprint from this repo, then fill in the secret environment variables. `PUBLIC_BASE_URL` defaults to Render's `RENDER_EXTERNAL_URL`. After each deploy, open the demo store and click **Fix this store → Install Lintel** before using the agent checkout API.
 
 ## Tech
 
