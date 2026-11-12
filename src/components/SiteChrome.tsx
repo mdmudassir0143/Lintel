@@ -32,12 +32,12 @@ export function SiteFooter() {
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">Keeps the door open for AI shoppers, and settles what they buy through PayPal.</p>
         </div>
         <FooterCol title="Product" links={[['How it works', '/#how'], ['Payments', '/#payments'], ['The nine checks', '/#checks'], ['Log in', '/login'], ['Create an account', '/signup']]} />
-        <FooterCol title="Developers" links={[['Docs', '/docs'], ['x402 scheme', '/docs#scheme'], ['lintel.js tools', '/docs#tools'], ['Agent SDK', '/docs#sdk'], ['Brand and design system', '/brand']]} />
+        <FooterCol title="Developers" links={[['Docs', '/docs'], ['x402 scheme', '/docs#scheme'], ['lintel.js tools', '/docs#tools'], ['Agent SDK', '/docs#sdk'], ['Postman collection', '/docs#postman'], ['Brand and design system', '/brand']]} />
         <FooterCol title="Try it" links={[['Demo store', '/store/ridgeline'], ['Get started', '/signup']]} />
       </div>
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between border-t border-line px-5 py-5 text-[13px] text-muted md:px-8">
+      <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-line px-5 py-5 text-[13px] text-muted md:px-8">
         <span className="flex items-center gap-2"><Mark className="h-3.5 w-3.5" /> Lintel, 2026</span>
-        <span>Payments run in PayPal sandbox during the preview.</span>
+        <span>Hosted on Render. Agent browsers by Kernel. Payments run in PayPal sandbox during the preview.</span>
       </div>
     </footer>
   );

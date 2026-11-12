@@ -14,6 +14,7 @@ const SECTIONS = [
   ['errors', 'Errors'],
   ['tools', 'lintel.js tools'],
   ['sdk', 'Agent SDK'],
+  ['postman', 'Postman collection'],
 ] as const;
 
 export default function Docs() {
@@ -180,6 +181,21 @@ const receipt = await buy(store, [{ sku: 'FW-SEN-50', qty: 1 }], {
 });
 // receipt.captureId is the PayPal capture`}</Pre>
             <p>Failures are <C>LintelError</C>s with a <C>code</C>: <C>no_manifest</C>, <C>bad_manifest</C>, <C>unsupported_scheme</C>, <C>approval_timeout</C>, <C>store_error</C> or <C>network</C>.</p>
+          </Section>
+          <Section id="postman" title="Postman collection">
+            <p>
+              Run the whole agent purchase from Postman: discover the store, read the catalog, get the <C>402</C>, approve in PayPal, and pay with
+              the proof. Every request checks its response, and pre-request scripts build the <C>PAYMENT-SIGNATURE</C> header for you.
+            </p>
+            <p>
+              <a href="/docs/postman" className="inline-flex items-center rounded-lg bg-ink px-3.5 py-2 text-[14px] font-semibold text-white hover:bg-ink/85">Download the collection</a>
+            </p>
+            <ol className="list-decimal space-y-1 pl-5">
+              <li>In Postman, choose <b>Import</b> and drop in the file. <C>baseUrl</C> is already set to <C>{base}</C>.</li>
+              <li>Send <b>1</b> to <b>3</b> in <b>Agent checkout</b>. Step 3 answers <C>402</C>; open the approve link from its <b>Visualize</b> tab and approve with a PayPal sandbox buyer.</li>
+              <li>Send <b>5</b> to capture. Steps 6 to 8 show that a replayed proof never captures twice, a swapped cart is refused, and a forged proof is rejected.</li>
+            </ol>
+            <p>It also runs from the command line with Newman: <C>npx newman run lintel.postman_collection.json</C>.</p>
           </Section>
         </article>
       </div>

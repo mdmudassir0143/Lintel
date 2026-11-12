@@ -1,0 +1,675 @@
+{
+  "info": {
+    "name": "Lintel API — x402 checkout settled through PayPal",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Lintel makes small online stores buyable by AI agents. This collection walks the public API an agent uses:\ndiscover a store, read its catalog, and pay over **x402** with the `paypal-order` scheme, which settles through the **PayPal Orders v2 API** (sandbox).\n\n## Run it\n1. Set `baseUrl` to your Lintel deployment (default `http://localhost:3000`). The demo merchant is `ridgeline`; it must have Lintel installed (in the app: open the demo store, **Fix this store**, **Install Lintel**).\n2. Send the requests in **Agent checkout** in order. Each one checks the response and saves what the next one needs.\n3. Step 3 answers `402 Payment Required` with a PayPal approve link. Open it from the **Visualize** tab (or the console), log in as a PayPal **sandbox** buyer, and approve.\n4. Send step 5. Lintel verifies the proof, captures the order, and returns the PayPal capture ID.\n\nThe human approves every payment in PayPal; an agent cannot spend on its own.\n\n## Headers\n- `PAYMENT-REQUIRED` (response, 402): base64 JSON, the same as the body.\n- `PAYMENT-SIGNATURE` (request): base64 of `{ x402Version: 2, scheme: \"paypal-order\", network: \"paypal:sandbox\", payload: { orderId, nonce } }`. Built for you by a pre-request script.\n- `PAYMENT-RESPONSE` (response, 200): base64 settlement receipt with the capture ID."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "merchant",
+      "value": "ridgeline"
+    },
+    {
+      "key": "sku",
+      "value": ""
+    },
+    {
+      "key": "qty",
+      "value": "1"
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    },
+    {
+      "key": "nonce",
+      "value": ""
+    },
+    {
+      "key": "approveUrl",
+      "value": ""
+    },
+    {
+      "key": "paymentSignature",
+      "value": ""
+    },
+    {
+      "key": "captureId",
+      "value": ""
+    },
+    {
+      "key": "scanUrl",
+      "value": "{{baseUrl}}/store/ridgeline"
+    },
+    {
+      "key": "scanId",
+      "value": ""
+    }
+  ],
+  "event": [],
+  "item": [
+    {
+      "name": "Agent checkout (x402 + PayPal)",
+      "description": "The full purchase an AI agent makes. Send in order.",
+      "item": [
+        {
+          "name": "1. Discover the store (agent manifest)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Store has Lintel installed', () => pm.response.to.have.status(200));",
+                  "        const m = pm.response.json();",
+                  "        pm.test('Checkout speaks x402 v2 with paypal-order', () => {",
+                  "          pm.expect(m.checkout.protocol).to.eql('x402');",
+                  "          pm.expect(m.checkout.x402Version).to.eql(2);",
+                  "          pm.expect(m.checkout.schemes).to.include('paypal-order');",
+                  "        });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/m/{{merchant}}/agent/manifest.json",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "m",
+                "{{merchant}}",
+                "agent",
+                "manifest.json"
+              ]
+            },
+            "description": "Stores with Lintel installed publish this manifest (also linked from the page with `<link rel=\"agent-manifest\">`). It tells an agent where the catalog and the x402 checkout are."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Read the catalog",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Catalog returned', () => pm.response.to.have.status(200));",
+                  "        const { products } = pm.response.json();",
+                  "        pm.test('Has products with SKU and USD price', () => {",
+                  "          pm.expect(products.length).to.be.above(0);",
+                  "          pm.expect(products[0]).to.include.keys('sku', 'title', 'price', 'currency');",
+                  "        });",
+                  "        const p = products.find((x) => x.inStock) || products[0];",
+                  "        pm.collectionVariables.set('sku', p.sku);",
+                  "        console.log('Buying', p.sku, p.title, p.price, p.currency);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/m/{{merchant}}/agent/catalog",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "m",
+                "{{merchant}}",
+                "agent",
+                "catalog"
+              ]
+            },
+            "description": "Clean, AI-rewritten product data. SKUs, prices and stock always come from the merchant, never from the model. Saves the first in-stock SKU as `sku`."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Checkout without payment → 402",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const decode = (b64) => JSON.parse(decodeURIComponent(escape(atob(b64))));",
+                  "        pm.test('402 Payment Required', () => pm.response.to.have.status(402));",
+                  "        const body = pm.response.json();",
+                  "        const a = body.accepts[0];",
+                  "        pm.test('Offers the paypal-order scheme in USD', () => {",
+                  "          pm.expect(body.x402Version).to.eql(2);",
+                  "          pm.expect(a.scheme).to.eql('paypal-order');",
+                  "          pm.expect(a.network).to.eql('paypal:sandbox');",
+                  "          pm.expect(a.asset).to.eql('USD');",
+                  "        });",
+                  "        pm.test('PAYMENT-REQUIRED header matches the body', () => {",
+                  "          pm.expect(decode(pm.response.headers.get('PAYMENT-REQUIRED'))).to.eql(body);",
+                  "        });",
+                  "        pm.collectionVariables.set('orderId', a.extra.orderId);",
+                  "        pm.collectionVariables.set('nonce', a.extra.nonce);",
+                  "        pm.collectionVariables.set('approveUrl', a.extra.approveUrl);",
+                  "        console.log('Approve in PayPal sandbox:', a.extra.approveUrl);",
+                  "        pm.visualizer.set(",
+                  "          '<div style=\"font:15px system-ui;padding:16px\"><p><b>{{amount}} USD</b> to {{payTo}}: {{description}}</p>' +",
+                  "          '<p><a href=\"{{url}}\" target=\"_blank\">Approve in PayPal sandbox →</a></p>' +",
+                  "          '<p style=\"color:#666\">PayPal order {{orderId}}. Then send step 5.</p></div>',",
+                  "          { amount: a.amount, payTo: a.payTo, description: a.description, url: a.extra.approveUrl, orderId: a.extra.orderId },",
+                  "        );"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/m/{{merchant}}/agent/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "m",
+                "{{merchant}}",
+                "agent",
+                "checkout"
+              ]
+            },
+            "description": "Lintel prices the cart, creates a PayPal order (`intent: CAPTURE`, `custom_id` = one-time nonce) and answers `402 Payment Required`. Open `approveUrl` (see **Visualize**) and approve with a PayPal sandbox buyer before step 5.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [{ \"sku\": \"{{sku}}\", \"qty\": {{qty}} }]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4. Pay before approving → 402 payment_not_approved",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Build the x402 payment proof from the 402 answer saved earlier.",
+                  "const orderId = pm.collectionVariables.get('orderId');",
+                  "const nonce = pm.collectionVariables.get('nonce');",
+                  "if (!orderId || !nonce) throw new Error('Run \"3. Checkout without payment\" first.');",
+                  "const payload = { x402Version: 2, scheme: 'paypal-order', network: 'paypal:sandbox', payload: { orderId, nonce } };",
+                  "pm.collectionVariables.set('paymentSignature', btoa(JSON.stringify(payload)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "          console.log('Already approved, so this captured the payment. Fine; step 5 will replay it.');",
+                  "          return;",
+                  "        }",
+                  "        pm.test('Still 402 until the buyer approves', () => pm.response.to.have.status(402));",
+                  "        pm.test('Reason is payment_not_approved', () => pm.expect(pm.response.json().error).to.eql('payment_not_approved'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PAYMENT-SIGNATURE",
+                "value": "{{paymentSignature}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/m/{{merchant}}/agent/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "m",
+                "{{merchant}}",
+                "agent",
+                "checkout"
+              ]
+            },
+            "description": "Optional. Send this before approving: Lintel asks PayPal for the order status and refuses to capture until the buyer has approved. It re-sends the same payment requirement.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [{ \"sku\": \"{{sku}}\", \"qty\": {{qty}} }]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5. Pay with proof → 200 + PayPal capture",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Build the x402 payment proof from the 402 answer saved earlier.",
+                  "const orderId = pm.collectionVariables.get('orderId');",
+                  "const nonce = pm.collectionVariables.get('nonce');",
+                  "if (!orderId || !nonce) throw new Error('Run \"3. Checkout without payment\" first.');",
+                  "const payload = { x402Version: 2, scheme: 'paypal-order', network: 'paypal:sandbox', payload: { orderId, nonce } };",
+                  "pm.collectionVariables.set('paymentSignature', btoa(JSON.stringify(payload)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const decode = (b64) => JSON.parse(decodeURIComponent(escape(atob(b64))));",
+                  "        pm.test('Paid (approve the PayPal link from step 3 first)', () => pm.response.to.have.status(200));",
+                  "        const body = pm.response.json();",
+                  "        pm.test('Order status is paid', () => pm.expect(body.status).to.eql('paid'));",
+                  "        const receipt = decode(pm.response.headers.get('PAYMENT-RESPONSE'));",
+                  "        pm.test('PAYMENT-RESPONSE receipt carries the PayPal capture', () => {",
+                  "          pm.expect(receipt.success).to.eql(true);",
+                  "          pm.expect(receipt.network).to.eql('paypal:sandbox');",
+                  "          pm.expect(receipt.paypalOrderId).to.eql(pm.collectionVariables.get('orderId'));",
+                  "          pm.expect(receipt.transaction).to.eql(body.captureId);",
+                  "        });",
+                  "        pm.collectionVariables.set('captureId', body.captureId);",
+                  "        console.log('PayPal capture', body.captureId, 'for', body.amount, 'USD');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PAYMENT-SIGNATURE",
+                "value": "{{paymentSignature}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/m/{{merchant}}/agent/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "m",
+                "{{merchant}}",
+                "agent",
+                "checkout"
+              ]
+            },
+            "description": "After approving in PayPal. The pre-request script builds `PAYMENT-SIGNATURE` from the saved order ID and nonce. Lintel checks the nonce, cart hash, order ID, PayPal status `APPROVED`, amount and `custom_id`, then captures.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [{ \"sku\": \"{{sku}}\", \"qty\": {{qty}} }]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6. Replay the proof → same receipt, no second capture",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Build the x402 payment proof from the 402 answer saved earlier.",
+                  "const orderId = pm.collectionVariables.get('orderId');",
+                  "const nonce = pm.collectionVariables.get('nonce');",
+                  "if (!orderId || !nonce) throw new Error('Run \"3. Checkout without payment\" first.');",
+                  "const payload = { x402Version: 2, scheme: 'paypal-order', network: 'paypal:sandbox', payload: { orderId, nonce } };",
+                  "pm.collectionVariables.set('paymentSignature', btoa(JSON.stringify(payload)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 with the stored receipt', () => pm.response.to.have.status(200));",
+                  "        pm.test('Same capture ID as step 5', () => pm.expect(pm.response.json().captureId).to.eql(pm.collectionVariables.get('captureId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PAYMENT-SIGNATURE",
+                "value": "{{paymentSignature}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/m/{{merchant}}/agent/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "m",
+                "{{merchant}}",
+                "agent",
+                "checkout"
+              ]
+            },
+            "description": "Sending the same proof again returns the stored receipt. PayPal is never captured twice.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [{ \"sku\": \"{{sku}}\", \"qty\": {{qty}} }]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7. Swap the cart after approval → 400 cart_mismatch",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Build the x402 payment proof from the 402 answer saved earlier.",
+                  "const orderId = pm.collectionVariables.get('orderId');",
+                  "const nonce = pm.collectionVariables.get('nonce');",
+                  "if (!orderId || !nonce) throw new Error('Run \"3. Checkout without payment\" first.');",
+                  "const payload = { x402Version: 2, scheme: 'paypal-order', network: 'paypal:sandbox', payload: { orderId, nonce } };",
+                  "pm.collectionVariables.set('paymentSignature', btoa(JSON.stringify(payload)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Rejected', () => pm.response.to.have.status(400));",
+                  "        pm.test('Reason is cart_mismatch', () => pm.expect(pm.response.json().error).to.eql('cart_mismatch'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PAYMENT-SIGNATURE",
+                "value": "{{paymentSignature}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/m/{{merchant}}/agent/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "m",
+                "{{merchant}}",
+                "agent",
+                "checkout"
+              ]
+            },
+            "description": "The proof is bound to the cart that was priced. Changing the quantity after approval is rejected.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [{ \"sku\": \"{{sku}}\", \"qty\": 5 }]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8. Forged proof → 400 unknown_nonce",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const forged = { x402Version: 2, scheme: 'paypal-order', network: 'paypal:sandbox', payload: { orderId: 'FAKE123', nonce: 'not-a-real-nonce' } };",
+                  "        pm.variables.set('forgedSignature', btoa(JSON.stringify(forged)));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Rejected', () => pm.response.to.have.status(400));",
+                  "        pm.test('Reason is unknown_nonce', () => pm.expect(pm.response.json().error).to.eql('unknown_nonce'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "PAYMENT-SIGNATURE",
+                "value": "{{forgedSignature}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/m/{{merchant}}/agent/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "m",
+                "{{merchant}}",
+                "agent",
+                "checkout"
+              ]
+            },
+            "description": "A proof with a nonce Lintel never issued is rejected before PayPal is called.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [{ \"sku\": \"{{sku}}\", \"qty\": {{qty}} }]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Readiness scan",
+      "description": "Score any public store on nine checks that matter to AI shoppers. No account needed.",
+      "item": [
+        {
+          "name": "Start a scan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Scan started', () => pm.response.to.have.status(200));",
+                  "        pm.collectionVariables.set('scanId', pm.response.json().scanId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/scan",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "scan"
+              ]
+            },
+            "description": "Set `scanUrl` to any public store address.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"{{scanUrl}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get the scan result",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Scan found', () => pm.response.to.have.status(200));",
+                  "        const s = pm.response.json();",
+                  "        if (s.status === 'running') {",
+                  "          // In the Collection Runner / Newman, poll up to 20 times; when sent by hand, just send again.",
+                  "          const n = Number(pm.collectionVariables.get('scanPolls') || 0);",
+                  "          if (n < 20) {",
+                  "            pm.collectionVariables.set('scanPolls', n + 1);",
+                  "            setTimeout(() => {}, 1500);",
+                  "            pm.execution.setNextRequest(pm.info.requestName);",
+                  "          }",
+                  "          console.log('Still running, polling again.');",
+                  "          return;",
+                  "        }",
+                  "        pm.collectionVariables.set('scanPolls', 0);",
+                  "        pm.test('Scan finished', () => pm.expect(s.status).to.eql('done'));",
+                  "        pm.test('Score is 0–100 with checks', () => {",
+                  "          pm.expect(s.score).to.be.within(0, 100);",
+                  "          pm.expect(s.checks.length).to.be.above(0);",
+                  "        });",
+                  "        console.log('Score', s.score, s.checks.map((c) => c.id + ':' + c.status).join(' '));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/scan/{{scanId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "scan",
+                "{{scanId}}"
+              ]
+            },
+            "description": "Scans take a few seconds. In the Collection Runner this polls until `status` is `done`; by hand, resend until it is."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Healthy', () => pm.expect(pm.response.json().ok).to.eql(true));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "health"
+          ]
+        },
+        "description": "Render health check: the app is up and the database answers."
+      },
+      "response": []
+    }
+  ]
+}

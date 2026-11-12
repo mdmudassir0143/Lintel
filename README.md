@@ -83,6 +83,23 @@ Demo flow:
 4. Click **Scan the store** (score 70), then send the agent again.
 5. Approve in PayPal. The agent pays, and the score reaches 100.
 
+## Try the API in Postman
+
+[`docs/postman/lintel.postman_collection.json`](docs/postman/lintel.postman_collection.json) walks the full agent purchase over x402 and PayPal. A deployed Lintel also serves it at `/docs/postman`, with `baseUrl` already set to that deployment.
+
+1. **Import** it in Postman. Set `baseUrl` if needed (default `http://localhost:3000`).
+2. Send steps 1 to 3 in **Agent checkout**: manifest, catalog, then checkout without payment, which answers `402` with a PayPal approve link (open it from the **Visualize** tab).
+3. Approve with a PayPal sandbox buyer, then send step 5. It builds `PAYMENT-SIGNATURE` for you, and the response carries the PayPal capture ID.
+4. Steps 6 to 8 show the safety checks: a replayed proof returns the same receipt and never captures twice, a swapped cart gets `cart_mismatch`, and a forged proof gets `unknown_nonce`.
+
+Every request has tests. From the command line: `npx newman run docs/postman/lintel.postman_collection.json`. Steps 5 and 6 pass once the payment has been approved.
+
+## Built with our hackathon partners
+
+- **[Render](https://render.com):** hosts Lintel and the Fernwood demo shop as two web services from `render.yaml`, with `/api/health` as the health check.
+- **[Kernel](https://kernel.sh):** cloud browsers for the browser agent (`BROWSER_PROVIDER=kernel`). Merchants watch a real Chromium shop their store through Kernel's live view.
+- **[Postman](https://www.postman.com):** the API collection above, which runs the x402 checkout settled through PayPal end to end, with tests.
+
 ## Accounts, stores and admin
 
 - **Sign up / log in** with email and password (scrypt-hashed; sessions are random tokens in an httpOnly cookie, stored hashed).
@@ -122,7 +139,7 @@ With `BROWSER_PROVIDER=local` (the default), the browser agent runs a local head
 
 ## Tech
 
-Next.js 15 (App Router), TypeScript, Tailwind CSS 4, SQLite (better-sqlite3), Vercel AI SDK v7, Groq and Gemini, Playwright, Kernel, PayPal Orders v2, and x402 v2 message format. Tests use Vitest.
+Next.js 15 (App Router), TypeScript, Tailwind CSS 4, SQLite (better-sqlite3), Vercel AI SDK v7, Groq and Gemini, Playwright, Kernel, Render, PayPal Orders v2, and x402 v2 message format. API collection for Postman. Tests use Vitest.
 
 Project layout:
 
